@@ -1,0 +1,94 @@
+package social
+
+import (
+	"github.com/asim/go-micro/v3"
+	"github.com/hashicorp/go.net/context"
+	"zzlove/conf"
+	"zzlove/rpc/social"
+)
+
+func InitClient(config *conf.Conf) {
+	service := micro.NewService(micro.Name(
+		config.Svc.Name),
+	)
+	client = social_svc.NewSocialService(
+		config.Svc.Name,
+		service.Client(),
+	)
+}
+
+func Follow(ctx context.Context, uid, touid int64) error {
+	_, err := client.Follow(ctx, toFollowRequest(uid, touid))
+	return err
+}
+
+func Unfollow(ctx context.Context, uid, touid int64) error {
+	_, err := client.Unfollow(ctx, toFollowRequest(uid, touid))
+	return err
+}
+
+func GetFollow(ctx context.Context, uid, cursor, offset int64) ([]int64, int64, error) {
+	res, err := client.GetFollow(ctx, toListRequest(uid, cursor, offset))
+	if err != nil || res == nil {
+		return nil, 0, err
+	}
+	return res.Uids, res.NextCursor, nil
+}
+
+func GetFollower(ctx context.Context, uid, cursor, offset int64) ([]int64, int64, error) {
+	res, err := client.GetFollower(ctx, toListRequest(uid, cursor, offset))
+	if err != nil || res == nil {
+		return nil, 0, err
+	}
+	return res.Uids, res.NextCursor, nil
+}
+
+func GetFollowCount(ctx context.Context, uid int64) (int64, int64, error) {
+	res, err := client.GetFollowCount(ctx, toCountRequest(uid))
+	if err != nil || res == nil {
+		return 0, 0, err
+	}
+	return res.FollowCount, res.FollowerCount, nil
+}
+
+func GetRelations(ctx context.Context, uid int64, uids []int64) (map[int64]int32, error) {
+	res, err := client.GetRelations(ctx, toRelationRequest(uid, uids))
+	if err != nil || res == nil {
+		return nil, err
+	}
+	return res.Relation, nil
+}
+
+func Black(ctx context.Context, uid, touid int64) error {
+	_, err := client.Black(ctx, toBlackRequest(uid, touid))
+	return err
+}
+
+func CancelBlack(ctx context.Context, uid, touid int64) error {
+	_, err := client.CancelBlack(ctx, toBlackRequest(uid, touid))
+	return err
+}
+
+func CheckBlack(ctx context.Context, uid, touid int64) (bool, error) {
+	res, err := client.CheckBlack(ctx, toBlackRequest(uid, touid))
+	if err != nil {
+		return false, err
+	}
+	return res.IsBlack, nil
+}
+
+func CheckBatchBlack(ctx context.Context, uid int64, uids []int64) (map[int64]bool, error) {
+	res, err := client.CheckBatchBlack(ctx, toRelationRequest(uid, uids))
+	if err != nil {
+		return nil, err
+	}
+	return res.Relation, nil
+}
+
+func GetBlackList(ctx context.Context, uid, cursor, offset int64) ([]int64, int64, error) {
+	res, err := client.GetBlackList(ctx, toListRequest(uid, cursor, offset))
+	if err != nil {
+		return nil, 0, err
+	}
+	return res.Uids, res.NextCursor, nil
+}
