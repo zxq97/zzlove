@@ -1,6 +1,7 @@
 svc:
-  addr: :9008
-  name: search_service
+  bind: :10013
+  addr: :10012
+  name: searchsvc
 
 etcd:
   addr:
@@ -15,6 +16,6 @@ kafka:
     - 192.168.0.123:9092
 
 log_path:
-  info: /home/work/zzlove/log/search/info.log
+  api: /home/work/zzlove/log/search/api.log
   exc: /home/work/zzlove/log/search/exc.log
   debug: /home/work/zzlove/log/search/debug.log

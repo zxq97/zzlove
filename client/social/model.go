@@ -1,6 +1,8 @@
 package social
 
-import "zzlove/rpc/social"
+import (
+	"zzlove/pb/social"
+)
 
 func toFollowRequest(uid, touid int64) *social_svc.FollowRequest {
 	return &social_svc.FollowRequest{

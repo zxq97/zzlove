@@ -7,6 +7,7 @@ import (
 	"zzlove/internal/generate"
 
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/peer"
 )
 
 func defaultTimeout(ctx context.Context, d time.Duration) (context.Context, context.CancelFunc) {
@@ -34,6 +35,14 @@ func getIncomingReqID(ctx context.Context) string {
 		if len(rs) > 0 {
 			return rs[0]
 		}
+	}
+	return ""
+}
+
+func getReqInfo(ctx context.Context) string {
+	p, ok := peer.FromContext(ctx)
+	if ok {
+		return p.Addr.String()
 	}
 	return ""
 }

@@ -4,12 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
+	"zzlove/internal/cast"
+	"zzlove/internal/constant"
+	"zzlove/internal/model"
+
 	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/go-redis/redis/v8"
-	"time"
-	"zzlove/util/cast"
-	"zzlove/util/constant"
-	"zzlove/util/lua"
 )
 
 const (
@@ -22,7 +23,7 @@ const (
 	RedisKeyZBrowse     = "user_service_browse_%v"     // uid
 )
 
-func cacheGetUser(ctx context.Context, uid int64) (*User, error) {
+func cacheGetUser(ctx context.Context, uid int64) (*model.User, error) {
 	userMap, missed, err := cacheBatchGetUser(ctx, []int64{uid})
 	if err != nil || len(missed) != 0 {
 		return nil, err
@@ -30,7 +31,7 @@ func cacheGetUser(ctx context.Context, uid int64) (*User, error) {
 	return userMap[uid], nil
 }
 
-func cacheBatchGetUser(ctx context.Context, uids []int64) (map[int64]*User, []int64, error) {
+func cacheBatchGetUser(ctx context.Context, uids []int64) (map[int64]*model.User, []int64, error) {
 	keys := make([]string, 0, len(uids))
 	for _, v := range uids {
 		keys = append(keys, fmt.Sprintf(MCKeyUserinfo, v))
@@ -39,9 +40,9 @@ func cacheBatchGetUser(ctx context.Context, uids []int64) (map[int64]*User, []in
 	if err != nil {
 		return nil, uids, err
 	}
-	userMap := make(map[int64]*User, len(uids))
+	userMap := make(map[int64]*model.User, len(uids))
 	for _, v := range res {
-		user := User{}
+		user := model.User{}
 		err = json.Unmarshal(v.Value, &user)
 		if err != nil {
 			excLogger.Printf("ctx %v cacheBatchGetUser user %v unmarshal err %v", ctx, v.Value, err)
@@ -76,7 +77,7 @@ func cacheGetList(ctx context.Context, key string, cursor, offset int64) ([]int6
 	return uids, nextCursor, nil
 }
 
-func setUser(ctx context.Context, user *User) error {
+func setUser(ctx context.Context, user *model.User) error {
 	buf, err := json.Marshal(user)
 	if err != nil {
 		return err
@@ -88,7 +89,7 @@ func setUser(ctx context.Context, user *User) error {
 	return err
 }
 
-func setBatchUser(ctx context.Context, userMap map[int64]*User) error {
+func setBatchUser(ctx context.Context, userMap map[int64]*model.User) error {
 	for k, v := range userMap {
 		val, err := json.Marshal(v)
 		if err != nil {
@@ -105,23 +106,31 @@ func setBatchUser(ctx context.Context, userMap map[int64]*User) error {
 }
 
 func cacheAddBrowse(ctx context.Context, uid, touid int64) error {
-	now := time.Now().UnixMilli()
+	now := float64(time.Now().UnixMilli())
 	key := fmt.Sprintf(RedisKeyZBrowse, uid)
-	err := lua.ZAdd(ctx, redisCli, key, touid, now, RedisKeyTTL)
-	if err != nil && err != redis.Nil {
-		excLogger.Printf("ctx %v cacheAddBrowse uid %v touid %v err %v", ctx, uid, touid, err)
+	if redisCli.TTL(ctx, key).Val() > constant.DefaultTTL {
+		err := redisCli.ZAdd(ctx, key, &redis.Z{Member: touid, Score: now}).Err()
+		if err != nil && err != redis.Nil {
+			excLogger.Printf("ctx %v cacheAddBrowse uid %v touid %v err %v", ctx, uid, touid, err)
+			return err
+		}
+		redisCli.Expire(ctx, key, RedisKeyTTL)
 	}
-	return err
+	return nil
 }
 
 func cacheCollection(ctx context.Context, uid, targetID int64) error {
-	now := time.Now().UnixMilli()
+	now := float64(time.Now().UnixMilli())
 	key := fmt.Sprintf(RedisKeyZCollection, uid)
-	err := lua.ZAdd(ctx, redisCli, key, targetID, now, RedisKeyTTL)
-	if err != nil && err != redis.Nil {
-		excLogger.Printf("ctx %v cacheCollection uid %v targetid %v err %v", ctx, uid, targetID, err)
+	if redisCli.TTL(ctx, key).Val() > constant.DefaultTTL {
+		err := redisCli.ZAdd(ctx, key, &redis.Z{Member: targetID, Score: now}).Err()
+		if err != nil && err != redis.Nil {
+			excLogger.Printf("ctx %v cacheCollection uid %v targetid %v err %v", ctx, uid, targetID, err)
+			return err
+		}
+		redisCli.Expire(ctx, key, RedisKeyTTL)
 	}
-	return err
+	return nil
 }
 
 func cacheCancelCollection(ctx context.Context, uid, targetID int64) error {
@@ -135,9 +144,9 @@ func cacheCancelCollection(ctx context.Context, uid, targetID int64) error {
 
 func setList(ctx context.Context, key string, ttl time.Duration, utMap map[int64]int64) error {
 	var err error
-	z := make([]*redis.Z, 0, constant.BatchSize)
+	z := make([]*redis.Z, 0, constant.DefaultBatchCount)
 	for k, v := range utMap {
-		if len(z) == constant.BatchSize {
+		if len(z) == constant.DefaultBatchCount {
 			err = redisCli.ZAdd(ctx, key, z...).Err()
 			if err != nil {
 				excLogger.Printf("ctx %v setFollow key %v utmap %v err %v", ctx, key, utMap, err)

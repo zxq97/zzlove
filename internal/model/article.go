@@ -1,4 +1,4 @@
-package article
+package model
 
 import (
 	"time"
@@ -19,7 +19,7 @@ type Article struct {
 	Mtime       time.Time `json:"mtime"`
 }
 
-func (a *Article) toArticleInfo() *article_svc.ArticleInfo {
+func (a *Article) ToArticleInfo() *article_svc.ArticleInfo {
 	return &article_svc.ArticleInfo{
 		ArticleId:   a.ArticleID,
 		Uid:         a.UID,

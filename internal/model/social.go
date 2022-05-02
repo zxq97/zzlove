@@ -1,4 +1,4 @@
-package social
+package model
 
 import "time"
 

@@ -15,6 +15,10 @@ func recovery(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo,
 	if reqid != "" {
 		ctx = context.WithValue(ctx, constant.ReqIDKey, reqid)
 	}
+	clientip := getReqInfo(ctx)
+	if clientip != "" {
+		ctx = context.WithValue(ctx, constant.ClientIPKey, clientip)
+	}
 	now := time.Now()
 	defer func() {
 		apiLogger.Println(time.Since(now))

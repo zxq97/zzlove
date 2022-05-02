@@ -1,8 +1,8 @@
 package user
 
 import (
-	"zzlove/rpc/user"
-	"zzlove/server/user"
+	"zzlove/internal/model"
+	"zzlove/pb/user"
 )
 
 func toUserinfoRequest(uid int64) *user_svc.UserInfoRequest {
@@ -59,8 +59,8 @@ func toCollectionRequest(uid, targetID int64) *user_svc.CollectionRequest {
 	}
 }
 
-func toUser(userinfo *user_svc.UserInfo) *user.User {
-	return &user.User{
+func toUser(userinfo *user_svc.UserInfo) *model.User {
+	return &model.User{
 		UID:          userinfo.Uid,
 		Nickname:     userinfo.Nickname,
 		Introduction: userinfo.Introduction,

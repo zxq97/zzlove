@@ -1,20 +1,30 @@
 package social
 
 import (
-	"github.com/asim/go-micro/v3"
-	"github.com/hashicorp/go.net/context"
-	"zzlove/conf"
-	"zzlove/rpc/social"
+	"context"
+
+	"google.golang.org/grpc"
+
+	"log"
+	"zzlove/pb/social"
 )
 
-func InitClient(config *conf.Conf) {
-	service := micro.NewService(micro.Name(
-		config.Svc.Name),
-	)
-	client = social_svc.NewSocialService(
-		config.Svc.Name,
-		service.Client(),
-	)
+var (
+	apiLogger *log.Logger
+	excLogger *log.Logger
+	dbgLogger *log.Logger
+
+	client social_svc.SocialClient
+)
+
+func InitLogger(apiLog, excLog, dbgLog *log.Logger) {
+	apiLogger = apiLog
+	excLogger = excLog
+	dbgLogger = dbgLog
+}
+
+func InitClient(conn *grpc.ClientConn) {
+	client = social_svc.NewSocialClient(conn)
 }
 
 func Follow(ctx context.Context, uid, touid int64) error {

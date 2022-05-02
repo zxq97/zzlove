@@ -28,8 +28,9 @@ cluster:
     - 192.168.0.126:6379
 
 svc:
-  addr: :10003
-  name: social_service
+  bind: :10003
+  addr: :10002
+  name: socialsvc
 
 etcd:
   addr:
@@ -44,7 +45,7 @@ kafka:
     - 192.168.0.123:9092
 
 log_path:
-  info: /home/work/log/zzlove/social/info.log
+  api: /home/work/log/zzlove/social/api.log
   exc: /home/work/log/zzlove/social/exc.log
   debug: /home/work/log/zzlove/social/debug.log
 

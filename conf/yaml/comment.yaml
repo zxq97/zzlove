@@ -28,8 +28,9 @@ cluster:
     - 192.168.0.126:6379
 
 svc:
-  addr: :10005
-  name: comment_service
+  bind: :10011
+  addr: :10010
+  name: commentsvc
 
 etcd:
   addr:
@@ -44,6 +45,6 @@ kafka:
     - 192.168.0.123:9092
 
 log_path:
-  info: /home/work/log/zzlove/comment/info.log
+  api: /home/work/log/zzlove/comment/api.log
   exc: /home/work/log/zzlove/comment/exc.log
   debug: /home/work/log/zzlove/comment/debug.log

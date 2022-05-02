@@ -1,8 +1,8 @@
-package user
+package model
 
 import (
 	"time"
-	"zzlove/rpc/user"
+	"zzlove/pb/user"
 )
 
 type User struct {
@@ -26,7 +26,7 @@ type BrowseHistory struct {
 	Mtime time.Time `json:"mtime"`
 }
 
-func (u *User) toUserinfo() *user_svc.UserInfo {
+func (u *User) ToUserinfo() *user_svc.UserInfo {
 	return &user_svc.UserInfo{
 		Uid:          u.UID,
 		Nickname:     u.Nickname,

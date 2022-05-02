@@ -3,30 +3,32 @@ package social
 import (
 	"context"
 	"database/sql"
-	"github.com/jinzhu/gorm"
 	"time"
-	"zzlove/util/concurrent"
+	"zzlove/internal/concurrent"
+	"zzlove/internal/model"
+
+	"github.com/jinzhu/gorm"
 )
 
 func dbFollow(ctx context.Context, uid, toUID int64) error {
-	followItem := Follow{
+	followItem := model.Follow{
 		UID:       uid,
 		FollowUID: toUID,
 		Ctime:     time.Now(),
 		Mtime:     time.Now(),
 	}
-	follower := Follower{
+	follower := model.Follower{
 		UID:         toUID,
 		FollowerUID: uid,
 		Ctime:       time.Now(),
 		Mtime:       time.Now(),
 	}
-	followCount := FollowCount{
+	followCount := model.FollowCount{
 		UID:           uid,
 		FollowCount:   1,
 		FollowerCount: 0,
 	}
-	followerCount := FollowCount{
+	followerCount := model.FollowCount{
 		UID:           toUID,
 		FollowCount:   0,
 		FollowerCount: 1,
@@ -58,24 +60,24 @@ func dbFollow(ctx context.Context, uid, toUID int64) error {
 }
 
 func dbUnfollow(ctx context.Context, uid, toUID int64) error {
-	followCount := FollowCount{
+	followCount := model.FollowCount{
 		UID:           uid,
 		FollowCount:   1,
 		FollowerCount: 0,
 	}
-	followerCount := FollowCount{
+	followerCount := model.FollowCount{
 		UID:           toUID,
 		FollowCount:   0,
 		FollowerCount: 1,
 	}
 	tx := dbCli.BeginTx(ctx, &sql.TxOptions{})
 	defer tx.Rollback()
-	err := dbCli.Where("uid = ? and follow_uid = ?", uid, toUID).Delete(&Follow{}).Error
+	err := dbCli.Where("uid = ? and follow_uid = ?", uid, toUID).Delete(&model.Follow{}).Error
 	if err != nil {
 		excLogger.Printf("ctx %v delete user_follow uid %v to_uid %v err %v", ctx, uid, toUID, err)
 		return err
 	}
-	err = dbCli.Where("uid = ? and follower_uid = ?", toUID, uid).Delete(&Follower{}).Error
+	err = dbCli.Where("uid = ? and follower_uid = ?", toUID, uid).Delete(&model.Follower{}).Error
 	if err != nil {
 		excLogger.Printf("ctx %v delete user_follower uid %v to_uid %v err %v", ctx, toUID, uid, err)
 		return err
@@ -95,7 +97,7 @@ func dbUnfollow(ctx context.Context, uid, toUID int64) error {
 }
 
 func dbGetFollowCount(ctx context.Context, uid int64) (int64, int64, error) {
-	followCount := FollowCount{}
+	followCount := model.FollowCount{}
 	err := slaveCli.Select([]string{"follow_count", "follower_count"}).Where("uid = ?", uid).Find(&followCount).Error
 	if err != nil {
 		excLogger.Printf("ctx %v dbGetFollowCount uid %v err %v", ctx, uid, err)
@@ -105,7 +107,7 @@ func dbGetFollowCount(ctx context.Context, uid int64) (int64, int64, error) {
 }
 
 func dbGetFollow(ctx context.Context, uid int64) ([]int64, map[int64]int64, error) {
-	follows := []Follow{}
+	follows := []model.Follow{}
 	err := slaveCli.Select([]string{"follow_uid, ctime"}).Where("uid = ?", uid).Order("id desc").Find(&follows).Error
 	if err != nil {
 		excLogger.Printf("ctx %v db get user follow uid %v err %v", ctx, uid, err)
@@ -121,7 +123,7 @@ func dbGetFollow(ctx context.Context, uid int64) ([]int64, map[int64]int64, erro
 }
 
 func dbGetFollower(ctx context.Context, uid int64) ([]int64, map[int64]int64, error) {
-	followers := []Follower{}
+	followers := []model.Follower{}
 	err := slaveCli.Select([]string{"follower_uid, ctime"}).Where("uid = ?", uid).Order("id desc").Find(&followers).Error
 	if err != nil {
 		excLogger.Printf("ctx %v db get user follower uid %v err %v", ctx, uid, err)
@@ -137,8 +139,8 @@ func dbGetFollower(ctx context.Context, uid int64) ([]int64, map[int64]int64, er
 }
 
 func dbGetRelations(ctx context.Context, uid int64, uids []int64) (map[int64]int32, error) {
-	follows := []Follow{}
-	followers := []Follower{}
+	follows := []model.Follow{}
+	followers := []model.Follower{}
 	wg := concurrent.NewWaitGroup()
 	wg.Run(func() {
 		err := slaveCli.Select([]string{"follow_uid"}).Where("uid = ? and follow_uid in (?)", uid, uids).Find(follows).Error
@@ -156,16 +158,16 @@ func dbGetRelations(ctx context.Context, uid int64, uids []int64) (map[int64]int
 	relationMap := make(map[int64]int32, len(uids))
 
 	for _, v := range follows {
-		relationMap[v.FollowUID] += RelationFollow
+		relationMap[v.FollowUID] += model.RelationFollow
 	}
 	for _, v := range followers {
-		relationMap[v.FollowerUID] += RelationFollower
+		relationMap[v.FollowerUID] += model.RelationFollower
 	}
 	return relationMap, nil
 }
 
 func dbAddBlack(ctx context.Context, uid, targetID int64) error {
-	userBlack := &UserBlack{
+	userBlack := &model.UserBlack{
 		UID:           uid,
 		BlackTargetID: targetID,
 		Ctime:         time.Now(),
@@ -179,7 +181,7 @@ func dbAddBlack(ctx context.Context, uid, targetID int64) error {
 }
 
 func dbDelBlack(ctx context.Context, uid, targetID int64) error {
-	err := dbCli.Where("uid = ? and black_target_id = ?", uid, targetID).Delete(&UserBlack{}).Error
+	err := dbCli.Where("uid = ? and black_target_id = ?", uid, targetID).Delete(&model.UserBlack{}).Error
 	if err != nil {
 		excLogger.Printf("ctx %v dbDelBlack uid %v target_id %v err %v", ctx, uid, targetID, err)
 	}
@@ -187,7 +189,7 @@ func dbDelBlack(ctx context.Context, uid, targetID int64) error {
 }
 
 func dbGetBlack(ctx context.Context, uid int64) ([]int64, map[int64]int64, error) {
-	blacks := []UserBlack{}
+	blacks := []model.UserBlack{}
 	err := slaveCli.Select([]string{"black_target_id, ctime"}).Where("uid = ?", uid).Find(blacks).Error
 	if err != nil {
 		excLogger.Printf("ctx %v dbGetBlack uid %v err %v", ctx, uid, err)

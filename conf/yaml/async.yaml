@@ -1,5 +1,6 @@
 svc:
-  addr: :10009
+  bind: :10009
+  addr: :10008
   name: asynctask
 
 etcd:
@@ -15,6 +16,6 @@ kafka:
     - 192.168.0.123:9092
 
 log_path:
-  info: /home/work/log/zzlove/asynctask/info.log
+  api: /home/work/log/zzlove/asynctask/api.log
   exc: /home/work/log/zzlove/asynctask/exc.log
   debug: /home/work/log/zzlove/asynctask/debug.log

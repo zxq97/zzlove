@@ -2,23 +2,32 @@ package user
 
 import (
 	"context"
-	"github.com/asim/go-micro/v3"
-	"zzlove/conf"
-	"zzlove/rpc/user"
-	"zzlove/server/user"
+	"log"
+	"zzlove/internal/model"
+	"zzlove/pb/user"
+
+	"google.golang.org/grpc"
 )
 
-func InitClient(config *conf.Conf) {
-	service := micro.NewService(micro.Name(
-		config.Svc.Name),
-	)
-	client = user_svc.NewUserService(
-		config.Svc.Name,
-		service.Client(),
-	)
+var (
+	apiLogger *log.Logger
+	excLogger *log.Logger
+	dbgLogger *log.Logger
+
+	client user_svc.UserClient
+)
+
+func InitLogger(apiLog, excLog, dbgLog *log.Logger) {
+	apiLogger = apiLog
+	excLogger = excLog
+	dbgLogger = dbgLog
 }
 
-func GetUserinfo(ctx context.Context, uid int64) (*user.User, error) {
+func InitClient(conn *grpc.ClientConn) {
+	client = user_svc.NewUserClient(conn)
+}
+
+func GetUserinfo(ctx context.Context, uid int64) (*model.User, error) {
 	res, err := client.GetUserinfo(ctx, toUserinfoRequest(uid))
 	if err != nil {
 		return nil, err
@@ -26,12 +35,12 @@ func GetUserinfo(ctx context.Context, uid int64) (*user.User, error) {
 	return toUser(res.Userinfo), nil
 }
 
-func GetBatchUserinfo(ctx context.Context, uids []int64) (map[int64]*user.User, error) {
+func GetBatchUserinfo(ctx context.Context, uids []int64) (map[int64]*model.User, error) {
 	res, err := client.GetBatchUserinfo(ctx, toBatchUserinfoRequest(uids))
 	if err != nil {
 		return nil, err
 	}
-	userMap := make(map[int64]*user.User, len(uids))
+	userMap := make(map[int64]*model.User, len(uids))
 	for k, v := range res.Userinfos {
 		userMap[k] = toUser(v)
 	}

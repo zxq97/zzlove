@@ -3,8 +3,9 @@ package constant
 import "time"
 
 const (
-	ReqIDKey = "req_id"
-	TrackKey = "track"
+	ClientIPKey = "client_ip"
+	ReqIDKey    = "req_id"
+	TrackKey    = "track"
 
 	ApiTrackKey     = "api"
 	ArticleTrackKey = "article"
@@ -16,8 +17,12 @@ const (
 	SocialTrackKey  = "social"
 	UserTrackKey    = "user"
 
-	DefaultTimeout = time.Second
-	DefaultTicker  = time.Minute
+	DefaultBatchCount = 1000
+
+	DefaultTTL       = 20 * time.Second
+	DefaultTimeout   = 3 * time.Second
+	DefaultIOTimeout = 10 * time.Second
+	DefaultTicker    = time.Minute
 
 	EtcdLeaseTTL = 10
 

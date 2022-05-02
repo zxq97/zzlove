@@ -1,6 +1,7 @@
 svc:
-  addr: :9888
-  name: api_service
+  bind: :8888
+  addr: :9999
+  name: apisvc
 
 etcd:
   addr:
@@ -15,6 +16,6 @@ kafka:
     - 192.168.0.123:9092
 
 log_path:
-  info: /home/work/log/zzlove/api/info.log
+  api: /home/work/log/zzlove/api/api.log
   exc: /home/work/log/zzlove/api/exc.log
   debug: /home/work/log/zzlove/api/debug.log

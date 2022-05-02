@@ -4,11 +4,10 @@ import (
 	"log"
 	"net"
 	"net/http"
-	_ "net/http/pprof"
 	"zzlove/conf"
 	"zzlove/internal/rpc"
-	"zzlove/pb/article"
-	"zzlove/server/article"
+	"zzlove/pb/user"
+	"zzlove/server/user"
 )
 
 var (
@@ -18,7 +17,7 @@ var (
 )
 
 func main() {
-	config, err := conf.LoadYaml(conf.ArticleConfPath)
+	config, err := conf.LoadYaml(conf.UserConfPath)
 	if err != nil {
 		panic(err)
 	}
@@ -36,8 +35,8 @@ func main() {
 		panic(err)
 	}
 
-	article.InitLogger(apiLogger, excLogger, dbgLogger)
-	err = article.InitService(config)
+	user.InitLogger(apiLogger, excLogger, dbgLogger)
+	err = user.InitService(config)
 	if err != nil {
 		panic(err)
 	}
@@ -45,7 +44,7 @@ func main() {
 	rpc.InitLogger(apiLogger, excLogger)
 	svc, er := rpc.NewGrpcServer(config)
 	defer er.Stop()
-	article_svc.RegisterArticleServer(svc, ArcileSvc{})
+	user_svc.RegisterUserServer(svc, UserSvc{})
 	_, err = er.Register()
 	if err != nil {
 		panic(err)

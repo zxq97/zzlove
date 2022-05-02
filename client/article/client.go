@@ -2,23 +2,32 @@ package article
 
 import (
 	"context"
-	"github.com/asim/go-micro/v3"
-	"zzlove/conf"
-	"zzlove/rpc/article"
-	"zzlove/server/article"
+	"log"
+	"zzlove/internal/model"
+	"zzlove/pb/article"
+
+	"google.golang.org/grpc"
 )
 
-func InitClient(config *conf.Conf) {
-	service := micro.NewService(micro.Name(
-		config.Svc.Name),
-	)
-	client = article_svc.NewArticleService(
-		config.Svc.Name,
-		service.Client(),
-	)
+var (
+	apiLogger *log.Logger
+	excLogger *log.Logger
+	dbgLogger *log.Logger
+
+	client article_svc.ArticleClient
+)
+
+func InitLogger(apiLog, excLog, dbgLog *log.Logger) {
+	apiLogger = apiLog
+	excLogger = excLog
+	dbgLogger = dbgLog
 }
 
-func GetArticle(ctx context.Context, articleID int64) (*article.Article, error) {
+func InitClient(conn *grpc.ClientConn) {
+	client = article_svc.NewArticleClient(conn)
+}
+
+func GetArticle(ctx context.Context, articleID int64) (*model.Article, error) {
 	res, err := client.GetArticle(ctx, toArticleRequest(articleID))
 	if err != nil || res == nil {
 		return nil, err
@@ -26,12 +35,12 @@ func GetArticle(ctx context.Context, articleID int64) (*article.Article, error) 
 	return toArticle(res.ArticleInfo), nil
 }
 
-func GetBatchArticle(ctx context.Context, articleIDs []int64) (map[int64]*article.Article, error) {
+func GetBatchArticle(ctx context.Context, articleIDs []int64) (map[int64]*model.Article, error) {
 	res, err := client.GetBatchArticle(ctx, toBatchArticleRequest(articleIDs))
 	if err != nil || res == nil {
 		return nil, err
 	}
-	articleMap := make(map[int64]*article.Article, len(articleIDs))
+	articleMap := make(map[int64]*model.Article, len(articleIDs))
 	for k, v := range res.ArticleInfos {
 		articleMap[k] = toArticle(v)
 	}

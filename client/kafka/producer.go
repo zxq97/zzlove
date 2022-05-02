@@ -1,9 +1,10 @@
 package kafka
 
 import (
-	"github.com/Shopify/sarama"
 	"time"
 	"zzlove/conf"
+
+	"github.com/Shopify/sarama"
 )
 
 var (

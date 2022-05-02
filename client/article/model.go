@@ -1,8 +1,8 @@
 package article
 
 import (
-	"zzlove/rpc/article"
-	"zzlove/server/article"
+	"zzlove/internal/model"
+	"zzlove/pb/article"
 )
 
 func toArticleRequest(articleID int64) *article_svc.ArticleRequest {
@@ -39,8 +39,8 @@ func toArticleInfo(articleID, uid int64, visibleType int32, content string) *art
 	}
 }
 
-func toArticle(articleInfo *article_svc.ArticleInfo) *article.Article {
-	return &article.Article{
+func toArticle(articleInfo *article_svc.ArticleInfo) *model.Article {
+	return &model.Article{
 		ArticleID:   articleInfo.ArticleId,
 		UID:         articleInfo.Uid,
 		Content:     articleInfo.Content,

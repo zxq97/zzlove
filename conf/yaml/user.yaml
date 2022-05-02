@@ -28,8 +28,9 @@ cluster:
     - 192.168.0.126:6379
 
 svc:
-  addr: :10001
-  name: user_service
+  bind: :10005
+  addr: :10004
+  name: usersvc
 
 etcd:
   addr:
@@ -44,6 +45,6 @@ kafka:
     - 192.168.0.123:9092
 
 log_path:
-  info: /home/work/log/zzlove/user/info.log
+  api: /home/work/log/zzlove/user/api.log
   exc: /home/work/log/zzlove/user/exc.log
   debug: /home/work/log/zzlove/user/debug.log

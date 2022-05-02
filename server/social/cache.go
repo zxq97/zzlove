@@ -3,12 +3,13 @@ package social
 import (
 	"context"
 	"fmt"
-	"github.com/go-redis/redis/v8"
 	"time"
-	"zzlove/util/cast"
-	"zzlove/util/concurrent"
-	"zzlove/util/constant"
-	"zzlove/util/lua"
+	"zzlove/internal/cast"
+	"zzlove/internal/concurrent"
+	"zzlove/internal/constant"
+	"zzlove/internal/model"
+
+	"github.com/go-redis/redis/v8"
 )
 
 const (
@@ -23,37 +24,54 @@ const (
 )
 
 func cacheFollow(ctx context.Context, uid, touid int64) error {
-	now := time.Now().UnixMilli()
+	now := float64(time.Now().UnixMilli())
 	key := fmt.Sprintf(RedisKeyZFollow, uid)
 	fkey := fmt.Sprintf(RedisKeyZFollower, touid)
 	ckey := fmt.Sprintf(RedisKeyFollowCount, uid)
 	fckey := fmt.Sprintf(RedisKeyFollowerCount, touid)
 
 	wg := concurrent.NewWaitGroup()
-	wg.Run(func() {
-		err := lua.ZAdd(ctx, redisCli, key, touid, now, RedisKeyFollowTTL)
-		if err != nil && err != redis.Nil {
-			excLogger.Printf("ctx %v addfollow uid %v touid %v err %v", ctx, uid, touid, err)
-		}
-	})
-	wg.Run(func() {
-		err := lua.ZAdd(ctx, redisCli, fkey, uid, now, RedisKeyFollowTTL)
-		if err != nil && err != redis.Nil {
-			excLogger.Printf("ctx %v addfollower uid %v touid %v err %v", ctx, uid, touid, err)
-		}
-	})
-	wg.Run(func() {
-		err := lua.Incr(ctx, redisCli, ckey, RedisKeyFollowTTL)
-		if err != nil && err != redis.Nil {
-			excLogger.Printf("ctx %v incrfollow uid %v touid %v err %v", ctx, uid, touid, err)
-		}
-	})
-	wg.Run(func() {
-		err := lua.Incr(ctx, redisCli, fckey, RedisKeyFollowTTL)
-		if err != nil && err != redis.Nil {
-			excLogger.Printf("ctx %v incrfollower uid %v touid %v err %v", ctx, uid, touid, err)
-		}
-	})
+	if redisCli.TTL(ctx, key).Val() > constant.DefaultTTL {
+		wg.Run(func() {
+			err := redisCli.ZAdd(ctx, key, &redis.Z{Member: touid, Score: now}).Err()
+			if err != nil && err != redis.Nil {
+				excLogger.Printf("ctx %v addfollow uid %v touid %v err %v", ctx, uid, touid, err)
+				return
+			}
+			redisCli.Expire(ctx, key, RedisKeyFollowTTL)
+		})
+	}
+	if redisCli.TTL(ctx, fkey).Val() > constant.DefaultTTL {
+		wg.Run(func() {
+			err := redisCli.ZAdd(ctx, fkey, &redis.Z{Member: uid, Score: now}).Err()
+			if err != nil && err != redis.Nil {
+				excLogger.Printf("ctx %v addfollower uid %v touid %v err %v", ctx, uid, touid, err)
+				return
+			}
+			redisCli.Expire(ctx, fkey, RedisKeyFollowTTL)
+		})
+	}
+	if redisCli.TTL(ctx, ckey).Val() > constant.DefaultTTL {
+		wg.Run(func() {
+			err := redisCli.Incr(ctx, ckey).Err()
+			if err != nil && err != redis.Nil {
+				excLogger.Printf("ctx %v incrfollow uid %v touid %v err %v", ctx, uid, touid, err)
+				return
+			}
+			redisCli.Expire(ctx, ckey, RedisKeyFollowTTL)
+		})
+	}
+	if redisCli.TTL(ctx, fckey).Val() > constant.DefaultTTL {
+		wg.Run(func() {
+			err := redisCli.Incr(ctx, fckey).Err()
+			if err != nil && err != redis.Nil {
+				excLogger.Printf("ctx %v incrfollower uid %v touid %v err %v", ctx, uid, touid, err)
+				return
+			}
+			redisCli.Expire(ctx, fckey, RedisKeyFollowTTL)
+
+		})
+	}
 	wg.Wait()
 	return nil
 }
@@ -75,18 +93,26 @@ func cacheUnfollow(ctx context.Context, uid, touid int64) error {
 			excLogger.Printf("ctx %v delfollower uid %v touid %v err %v", ctx, uid, touid, err)
 		}
 	})
-	wg.Run(func() {
-		err := lua.Decr(ctx, redisCli, ckey, RedisKeyFollowTTL)
-		if err != nil && err != redis.Nil {
-			excLogger.Printf("ctx %v decrfollow uid %v touid %v err %v", ctx, uid, touid, err)
-		}
-	})
-	wg.Run(func() {
-		err := lua.Decr(ctx, redisCli, fckey, RedisKeyFollowTTL)
-		if err != nil && err != redis.Nil {
-			excLogger.Printf("ctx %v decrfollower uid %v touid %v err %v", ctx, uid, touid, err)
-		}
-	})
+	if redisCli.TTL(ctx, ckey).Val() > constant.DefaultTTL {
+		wg.Run(func() {
+			err := redisCli.Decr(ctx, ckey).Err()
+			if err != nil && err != redis.Nil {
+				excLogger.Printf("ctx %v decrfollow uid %v touid %v err %v", ctx, uid, touid, err)
+				return
+			}
+			redisCli.Expire(ctx, ckey, RedisKeyFollowTTL)
+		})
+	}
+	if redisCli.TTL(ctx, fckey).Val() > constant.DefaultTTL {
+		wg.Run(func() {
+			err := redisCli.Decr(ctx, fckey).Err()
+			if err != nil && err != redis.Nil {
+				excLogger.Printf("ctx %v decrfollower uid %v touid %v err %v", ctx, uid, touid, err)
+				return
+			}
+			redisCli.Expire(ctx, fckey, RedisKeyFollowTTL)
+		})
+	}
 	wg.Wait()
 	return nil
 }
@@ -135,9 +161,9 @@ func cacheGetFollowCount(ctx context.Context, uid int64) (int64, int64, error) {
 
 func setList(ctx context.Context, key string, ttl time.Duration, followMap map[int64]int64) error {
 	var err error
-	z := make([]*redis.Z, 0, constant.BatchSize)
+	z := make([]*redis.Z, 0, constant.DefaultBatchCount)
 	for k, v := range followMap {
-		if len(z) == constant.BatchSize {
+		if len(z) == constant.DefaultBatchCount {
 			err = redisCli.ZAdd(ctx, key, z...).Err()
 			if err != nil {
 				excLogger.Printf("ctx %v setFollow key %v followmap %v err %v", ctx, key, followMap, err)
@@ -197,12 +223,12 @@ func cacheGetRelation(ctx context.Context, uid int64, uids []int64) (map[int64]i
 	for _, v := range uids {
 		if cmd, ok := cmdMap[v]; ok {
 			if cmd.Val() != 0 {
-				relationMap[v] += RelationFollow
+				relationMap[v] += model.RelationFollow
 			}
 		}
 		if cmd, ok := cmdfMap[v]; ok {
 			if cmd.Val() != 0 {
-				relationMap[v] += RelationFollower
+				relationMap[v] += model.RelationFollower
 			}
 		}
 	}
@@ -210,23 +236,31 @@ func cacheGetRelation(ctx context.Context, uid int64, uids []int64) (map[int64]i
 }
 
 func cacheBlack(ctx context.Context, uid, touid int64) error {
-	now := time.Now().UnixMilli()
+	now := float64(time.Now().UnixMilli())
 	key := fmt.Sprintf(RedisKeyZBlack, uid)
 	bkey := fmt.Sprintf(RedisKeyZBlack, touid)
 
 	wg := concurrent.NewWaitGroup()
-	wg.Run(func() {
-		err := lua.ZAdd(ctx, redisCli, key, touid, now, RedisKeyBlackTTL)
-		if err != nil && err != redis.Nil {
-			excLogger.Printf("ctx %v cacheblack uid %v touid %v err %v", ctx, uid, touid, err)
-		}
-	})
-	wg.Run(func() {
-		err := lua.ZAdd(ctx, redisCli, bkey, uid, now, RedisKeyBlackTTL)
-		if err != nil && err != redis.Nil {
-			excLogger.Printf("ctx %v cacheblack uid %v touid %v err %v", ctx, touid, uid, err)
-		}
-	})
+	if redisCli.TTL(ctx, key).Val() > constant.DefaultTTL {
+		wg.Run(func() {
+			err := redisCli.ZAdd(ctx, key, &redis.Z{Member: touid, Score: now}).Err()
+			if err != nil && err != redis.Nil {
+				excLogger.Printf("ctx %v cacheblack uid %v touid %v err %v", ctx, uid, touid, err)
+				return
+			}
+			redisCli.Expire(ctx, key, RedisKeyBlackTTL)
+		})
+	}
+	if redisCli.TTL(ctx, bkey).Val() > constant.DefaultTTL {
+		wg.Run(func() {
+			err := redisCli.ZAdd(ctx, bkey, &redis.Z{Member: uid, Score: now}).Err()
+			if err != nil && err != redis.Nil {
+				excLogger.Printf("ctx %v cacheblack uid %v touid %v err %v", ctx, touid, uid, err)
+				return
+			}
+			redisCli.Expire(ctx, bkey, RedisKeyBlackTTL)
+		})
+	}
 	wg.Wait()
 	return nil
 }
