@@ -1,0 +1,20 @@
+svc:
+  addr: :9008
+  name: search_service
+
+etcd:
+  addr:
+    - 192.168.0.121:2379
+    - 192.168.0.122:2379
+    - 192.168.0.123:2379
+
+kafka:
+  addr:
+    - 192.168.0.121:9092
+    - 192.168.0.122:9092
+    - 192.168.0.123:9092
+
+log_path:
+  info: /home/work/zzlove/log/search/info.log
+  exc: /home/work/zzlove/log/search/exc.log
+  debug: /home/work/zzlove/log/search/debug.log

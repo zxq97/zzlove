@@ -1,0 +1,74 @@
+syntax = "proto3";
+package social;
+option go_package = "pb/social;social_svc";
+
+message RelationItem {
+  int64 uid = 1;
+  int64 to_uid = 2;
+}
+
+message FollowRequest {
+  RelationItem follow_item = 1;
+}
+
+message EmptyResponse {
+}
+
+message UnfollowRequest {
+  RelationItem follow_item = 1;
+}
+
+message BlackRequest {
+  RelationItem black_item = 1;
+}
+
+message BlackResponse {
+  bool is_black = 1;
+}
+
+message ListRequest {
+  int64 uid = 1;
+  int64 cursor = 2;
+  int64 offset = 3;
+}
+
+message ListResponse {
+  repeated int64 uids = 1;
+  int64 next_cursor = 2;
+}
+
+message CountRequest {
+  int64 uid = 1;
+}
+
+message CountResponse {
+  int64 follow_count = 1;
+  int64 follower_count = 2;
+}
+
+message RelationRequest {
+  int64 uid = 1;
+  repeated int64 uids = 2;
+}
+
+message RelationResponse {
+  map<int64, int32> relation = 1;
+}
+
+message BlackBatchResponse {
+  map<int64, bool> relation = 1;
+}
+
+service Social {
+  rpc Follow(FollowRequest) returns (EmptyResponse);
+  rpc Unfollow(FollowRequest) returns (EmptyResponse);
+  rpc GetFollow(ListRequest) returns (ListResponse);
+  rpc GetFollower(ListRequest) returns (ListResponse);
+  rpc GetFollowCount(CountRequest) returns (CountResponse);
+  rpc GetRelations(RelationRequest) returns (RelationResponse);
+  rpc Black(BlackRequest) returns (EmptyResponse);
+  rpc CancelBlack(BlackRequest) returns (EmptyResponse);
+  rpc CheckBlack(BlackRequest) returns (BlackResponse);
+  rpc CheckBatchBlack(RelationRequest) returns (BlackBatchResponse);
+  rpc GetBlackList(ListRequest) returns (ListResponse);
+}

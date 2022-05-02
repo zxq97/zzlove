@@ -1,0 +1,20 @@
+svc:
+  addr: :9888
+  name: api_service
+
+etcd:
+  addr:
+    - 192.168.0.121:2379
+    - 192.168.0.122:2379
+    - 192.168.0.123:2379
+
+kafka:
+  addr:
+    - 192.168.0.121:9092
+    - 192.168.0.122:9092
+    - 192.168.0.123:9092
+
+log_path:
+  info: /home/work/log/zzlove/api/info.log
+  exc: /home/work/log/zzlove/api/exc.log
+  debug: /home/work/log/zzlove/api/debug.log

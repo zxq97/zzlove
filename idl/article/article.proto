@@ -1,0 +1,46 @@
+syntax = "proto3";
+package article;
+option go_package = "pb/article;article_svc";
+
+message ArticleInfo {
+  int64 article_id = 1;
+  int64 uid = 2;
+  string content = 3;
+  int32 visible_type = 4;
+}
+
+message ArticleRequest {
+  int64 article_id = 1;
+}
+
+message ArticleResponse {
+  ArticleInfo article_info = 1;
+}
+
+message ArticleBatchRequest {
+  repeated int64 article_ids = 1;
+}
+
+message ArticleBatchResponse {
+  map<int64, ArticleInfo> article_infos = 1;
+}
+
+message PublishArticleRequest {
+  ArticleInfo article_info = 1;
+}
+
+message VisibleTypeRequest {
+  int64 article_id = 1;
+  int32 visible_type = 2;
+}
+
+message EmptyResponse {
+}
+
+service Article {
+  rpc GetArticle(ArticleRequest) returns (ArticleResponse);
+  rpc GetBatchArticle(ArticleBatchRequest) returns (ArticleBatchResponse);
+  rpc ChangeVisibleType(VisibleTypeRequest) returns (EmptyResponse);
+  rpc PublishArticle(PublishArticleRequest) returns (EmptyResponse);
+  rpc DeleteArticle(ArticleRequest) returns (EmptyResponse);
+}

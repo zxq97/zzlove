@@ -1,0 +1,68 @@
+syntax = "proto3";
+package user;
+option go_package = "pb/user;user_svc";
+
+message UserInfo {
+  int64 uid = 1;
+  string nickname = 2;
+  int32 gender = 3;
+  string introduction = 4;
+}
+
+message UserInfoRequest {
+  int64 uid = 1;
+}
+
+message UserInfoResponse {
+  UserInfo userinfo = 1;
+}
+
+message UserInfoBatchRequest {
+  repeated int64 uids = 1;
+}
+
+message UserInfoBatchResponse {
+  map<int64, UserInfo> userinfos = 1;
+}
+
+message EmptyResponse {
+}
+
+message RelationInfo {
+  int64 uid = 1;
+  int64 to_uid = 2;
+}
+
+message CollectionRequest {
+  RelationInfo collection_info = 1;
+}
+
+message AddBrowseRequest {
+  RelationInfo browse_info = 1;
+}
+
+message CreateUserRequest {
+  UserInfo userinfo = 1;
+}
+
+message ListRequest {
+  int64 uid = 1;
+  int64 cursor = 2;
+  int64 offset = 3;
+}
+
+message ListResponse {
+  repeated int64 target_ids = 1;
+  int64 next_cursor = 2;
+}
+
+service User {
+  rpc GetUserinfo(UserInfoRequest) returns (UserInfoResponse);
+  rpc GetBatchUserinfo(UserInfoBatchRequest) returns (UserInfoBatchResponse);
+  rpc GetHistoryBrowse(ListRequest) returns (ListResponse);
+  rpc GetCollectionList(ListRequest) returns (ListResponse);
+  rpc Collection(CollectionRequest) returns (EmptyResponse);
+  rpc CancelCollection(CollectionRequest) returns (EmptyResponse);
+  rpc AddBrowse(AddBrowseRequest) returns (EmptyResponse);
+  rpc CreateUser(CreateUserRequest) returns (EmptyResponse);
+}

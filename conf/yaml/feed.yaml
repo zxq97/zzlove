@@ -1,0 +1,27 @@
+cluster:
+  addr:
+    - 192.168.0.121:6379
+    - 192.168.0.122:6379
+    - 192.168.0.123:6379
+    - 192.168.0.124:6379
+    - 192.168.0.125:6379
+    - 192.168.0.126:6379
+
+svc:
+  addr: :10007
+  name: feed_service
+
+etcd:
+  addr:
+    - 192.168.0.121:2379
+    - 192.168.0.122:2379
+    - 192.168.0.123:2379
+
+mongo:
+  db_name: feed_service
+  addr: mongodb://192.168.0.121:27017,192.168.0.122:27017,192.168.0.123:27017
+
+log_path:
+  info: /home/work/log/zzlove/feed/info.log
+  exc: /home/work/log/zzlove/feed/exc.log
+  debug: /home/work/log/zzlove/feed/debug.log

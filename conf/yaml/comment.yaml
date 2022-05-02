@@ -1,0 +1,49 @@
+mysql:
+  host: 192.168.0.121
+  port: 3306
+  user: root
+  db: zzlove_comment
+  password: 7yAZCOMkt23nnIke
+
+slave:
+  host: 192.168.0.122
+  port: 3306
+  user: root
+  db: zzlove_comment
+  password: 7yAZCOMkt23nnIke
+
+mc:
+  addr:
+    - 192.168.0.121:11211
+    - 192.168.0.122:11211
+    - 192.168.0.123:11211
+
+cluster:
+  addr:
+    - 192.168.0.121:6379
+    - 192.168.0.122:6379
+    - 192.168.0.123:6379
+    - 192.168.0.124:6379
+    - 192.168.0.125:6379
+    - 192.168.0.126:6379
+
+svc:
+  addr: :10005
+  name: comment_service
+
+etcd:
+  addr:
+    - 192.168.0.121:2379
+    - 192.168.0.122:2379
+    - 192.168.0.123:2379
+
+kafka:
+  addr:
+    - 192.168.0.121:9092
+    - 192.168.0.122:9092
+    - 192.168.0.123:9092
+
+log_path:
+  info: /home/work/log/zzlove/comment/info.log
+  exc: /home/work/log/zzlove/comment/exc.log
+  debug: /home/work/log/zzlove/comment/debug.log
