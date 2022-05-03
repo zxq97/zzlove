@@ -1,19 +1,13 @@
 package main
 
 import (
-	"log"
 	"net"
 	"net/http"
 	"zzlove/conf"
+	"zzlove/global"
 	"zzlove/internal/rpc"
 	"zzlove/pb/social"
-	"zzlove/server/article"
-)
-
-var (
-	apiLogger *log.Logger
-	excLogger *log.Logger
-	dbgLogger *log.Logger
+	"zzlove/server/social"
 )
 
 func main() {
@@ -22,26 +16,24 @@ func main() {
 		panic(err)
 	}
 
-	apiLogger, err = conf.InitLog(config.LogPath.Api)
+	global.ApiLogger, err = conf.InitLog(config.LogPath.Api)
 	if err != nil {
 		panic(err)
 	}
-	excLogger, err = conf.InitLog(config.LogPath.Exc)
+	global.ExcLogger, err = conf.InitLog(config.LogPath.Exc)
 	if err != nil {
 		panic(err)
 	}
-	dbgLogger, err = conf.InitLog(config.LogPath.Debug)
-	if err != nil {
-		panic(err)
-	}
-
-	article.InitLogger(apiLogger, excLogger, dbgLogger)
-	err = article.InitService(config)
+	global.DbgLogger, err = conf.InitLog(config.LogPath.Debug)
 	if err != nil {
 		panic(err)
 	}
 
-	rpc.InitLogger(apiLogger, excLogger)
+	err = social.InitService(config)
+	if err != nil {
+		panic(err)
+	}
+
 	svc, er := rpc.NewGrpcServer(config)
 	defer er.Stop()
 	social_svc.RegisterSocialServer(svc, SocialSvc{})

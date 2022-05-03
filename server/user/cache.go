@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
+	"zzlove/global"
 	"zzlove/internal/cast"
 	"zzlove/internal/constant"
 	"zzlove/internal/model"
@@ -45,7 +46,7 @@ func cacheBatchGetUser(ctx context.Context, uids []int64) (map[int64]*model.User
 		user := model.User{}
 		err = json.Unmarshal(v.Value, &user)
 		if err != nil {
-			excLogger.Printf("ctx %v cacheBatchGetUser user %v unmarshal err %v", ctx, v.Value, err)
+			global.ExcLogger.Printf("ctx %v cacheBatchGetUser user %v unmarshal err %v", ctx, v.Value, err)
 			continue
 		}
 		userMap[user.UID] = &user
@@ -62,7 +63,7 @@ func cacheBatchGetUser(ctx context.Context, uids []int64) (map[int64]*model.User
 func cacheGetList(ctx context.Context, key string, cursor, offset int64) ([]int64, int64, error) {
 	val, err := redisCli.ZRevRange(ctx, key, cursor, cursor+offset).Result()
 	if err != nil {
-		excLogger.Printf("ctx %v cacheGetFollow key %v cursor %v err %v", ctx, key, cursor, err)
+		global.ExcLogger.Printf("ctx %v cacheGetFollow key %v cursor %v err %v", ctx, key, cursor, err)
 		return nil, 0, err
 	}
 	uids := make([]int64, 0, offset)
@@ -84,7 +85,7 @@ func setUser(ctx context.Context, user *model.User) error {
 	}
 	err = mcCli.Set(&memcache.Item{Key: fmt.Sprintf(MCKeyUserinfo, user.UID), Value: buf, Expiration: MCKeyUserinfoTTl})
 	if err != nil {
-		excLogger.Printf("ctx %v cacheSetUser user %v err %v", ctx, user, err)
+		global.ExcLogger.Printf("ctx %v cacheSetUser user %v err %v", ctx, user, err)
 	}
 	return err
 }
@@ -93,12 +94,12 @@ func setBatchUser(ctx context.Context, userMap map[int64]*model.User) error {
 	for k, v := range userMap {
 		val, err := json.Marshal(v)
 		if err != nil {
-			excLogger.Printf("ctx %v cacheBatchSetUser marshal user %v err %v", ctx, v, err)
+			global.ExcLogger.Printf("ctx %v cacheBatchSetUser marshal user %v err %v", ctx, v, err)
 			continue
 		}
 		err = mcCli.Set(&memcache.Item{Key: fmt.Sprintf(MCKeyUserinfo, k), Value: val, Expiration: MCKeyUserinfoTTl})
 		if err != nil {
-			excLogger.Printf("ctx %v cacheBatchSetUser set mc user %v err %v", ctx, val, err)
+			global.ExcLogger.Printf("ctx %v cacheBatchSetUser set mc user %v err %v", ctx, val, err)
 			continue
 		}
 	}
@@ -111,7 +112,7 @@ func cacheAddBrowse(ctx context.Context, uid, touid int64) error {
 	if redisCli.TTL(ctx, key).Val() > constant.DefaultTTL {
 		err := redisCli.ZAdd(ctx, key, &redis.Z{Member: touid, Score: now}).Err()
 		if err != nil && err != redis.Nil {
-			excLogger.Printf("ctx %v cacheAddBrowse uid %v touid %v err %v", ctx, uid, touid, err)
+			global.ExcLogger.Printf("ctx %v cacheAddBrowse uid %v touid %v err %v", ctx, uid, touid, err)
 			return err
 		}
 		redisCli.Expire(ctx, key, RedisKeyTTL)
@@ -125,7 +126,7 @@ func cacheCollection(ctx context.Context, uid, targetID int64) error {
 	if redisCli.TTL(ctx, key).Val() > constant.DefaultTTL {
 		err := redisCli.ZAdd(ctx, key, &redis.Z{Member: targetID, Score: now}).Err()
 		if err != nil && err != redis.Nil {
-			excLogger.Printf("ctx %v cacheCollection uid %v targetid %v err %v", ctx, uid, targetID, err)
+			global.ExcLogger.Printf("ctx %v cacheCollection uid %v targetid %v err %v", ctx, uid, targetID, err)
 			return err
 		}
 		redisCli.Expire(ctx, key, RedisKeyTTL)
@@ -137,7 +138,7 @@ func cacheCancelCollection(ctx context.Context, uid, targetID int64) error {
 	key := fmt.Sprintf(RedisKeyZCollection, uid)
 	err := redisCli.ZRem(ctx, key, targetID).Err()
 	if err != nil && err != redis.Nil {
-		excLogger.Printf("ctx %v cacheCancelCollection uid %v targetid %v err %v", ctx, uid, targetID, err)
+		global.ExcLogger.Printf("ctx %v cacheCancelCollection uid %v targetid %v err %v", ctx, uid, targetID, err)
 	}
 	return err
 }
@@ -149,7 +150,7 @@ func setList(ctx context.Context, key string, ttl time.Duration, utMap map[int64
 		if len(z) == constant.DefaultBatchCount {
 			err = redisCli.ZAdd(ctx, key, z...).Err()
 			if err != nil {
-				excLogger.Printf("ctx %v setFollow key %v utmap %v err %v", ctx, key, utMap, err)
+				global.ExcLogger.Printf("ctx %v setFollow key %v utmap %v err %v", ctx, key, utMap, err)
 				return err
 			}
 			z = z[:0]
@@ -159,7 +160,7 @@ func setList(ctx context.Context, key string, ttl time.Duration, utMap map[int64
 	if len(z) != 0 {
 		err = redisCli.ZAdd(ctx, key, z...).Err()
 		if err != nil {
-			excLogger.Printf("ctx %v setFollow key %v utmap %v err %v", ctx, key, utMap, err)
+			global.ExcLogger.Printf("ctx %v setFollow key %v utmap %v err %v", ctx, key, utMap, err)
 		}
 	}
 	redisCli.Expire(ctx, key, ttl)

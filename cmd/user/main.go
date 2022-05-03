@@ -1,19 +1,13 @@
 package main
 
 import (
-	"log"
 	"net"
 	"net/http"
 	"zzlove/conf"
+	"zzlove/global"
 	"zzlove/internal/rpc"
 	"zzlove/pb/user"
 	"zzlove/server/user"
-)
-
-var (
-	apiLogger *log.Logger
-	excLogger *log.Logger
-	dbgLogger *log.Logger
 )
 
 func main() {
@@ -22,26 +16,24 @@ func main() {
 		panic(err)
 	}
 
-	apiLogger, err = conf.InitLog(config.LogPath.Api)
+	global.ApiLogger, err = conf.InitLog(config.LogPath.Api)
 	if err != nil {
 		panic(err)
 	}
-	excLogger, err = conf.InitLog(config.LogPath.Exc)
+	global.ExcLogger, err = conf.InitLog(config.LogPath.Exc)
 	if err != nil {
 		panic(err)
 	}
-	dbgLogger, err = conf.InitLog(config.LogPath.Debug)
+	global.DbgLogger, err = conf.InitLog(config.LogPath.Debug)
 	if err != nil {
 		panic(err)
 	}
 
-	user.InitLogger(apiLogger, excLogger, dbgLogger)
 	err = user.InitService(config)
 	if err != nil {
 		panic(err)
 	}
 
-	rpc.InitLogger(apiLogger, excLogger)
 	svc, er := rpc.NewGrpcServer(config)
 	defer er.Stop()
 	user_svc.RegisterUserServer(svc, UserSvc{})

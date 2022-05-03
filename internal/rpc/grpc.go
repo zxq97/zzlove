@@ -2,7 +2,6 @@ package rpc
 
 import (
 	"fmt"
-	"log"
 	"time"
 	"zzlove/conf"
 	"zzlove/internal/constant"
@@ -11,16 +10,6 @@ import (
 	"google.golang.org/grpc/balancer/roundrobin"
 	"google.golang.org/grpc/resolver"
 )
-
-var (
-	apiLogger *log.Logger
-	excLogger *log.Logger
-)
-
-func InitLogger(apiLog, excLog *log.Logger) {
-	apiLogger = apiLog
-	excLogger = excLog
-}
 
 func NewGrpcConn(config *conf.Conf) (*grpc.ClientConn, error) {
 	er := newEtcdDiscover(config.Etcd.Addr, time.Duration(config.Etcd.TTL)*time.Second, config.Svc.Name)

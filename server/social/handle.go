@@ -3,7 +3,6 @@ package social
 import (
 	"context"
 	"fmt"
-	"log"
 	"zzlove/conf"
 	"zzlove/internal/concurrent"
 
@@ -12,20 +11,10 @@ import (
 )
 
 var (
-	apiLogger *log.Logger
-	excLogger *log.Logger
-	dbgLogger *log.Logger
-
 	redisCli redis.Cmdable
 	dbCli    *gorm.DB
 	slaveCli *gorm.DB
 )
-
-func InitLogger(apiLog, excLog, dbgLog *log.Logger) {
-	apiLogger = apiLog
-	excLogger = excLog
-	dbgLogger = dbgLog
-}
 
 func InitService(config *conf.Conf) error {
 	var err error

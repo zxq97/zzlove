@@ -1,15 +1,9 @@
-package env
+package global
 
-import (
-	"log"
-
-	"github.com/gin-gonic/gin"
-)
+import "log"
 
 var (
 	ApiLogger *log.Logger
 	ExcLogger *log.Logger
 	DbgLogger *log.Logger
-
-	Route *gin.Engine
 )

@@ -2,7 +2,6 @@ package article
 
 import (
 	"context"
-	"log"
 	"zzlove/internal/model"
 	"zzlove/pb/article"
 
@@ -10,18 +9,8 @@ import (
 )
 
 var (
-	apiLogger *log.Logger
-	excLogger *log.Logger
-	dbgLogger *log.Logger
-
 	client article_svc.ArticleClient
 )
-
-func InitLogger(apiLog, excLog, dbgLog *log.Logger) {
-	apiLogger = apiLog
-	excLogger = excLog
-	dbgLogger = dbgLog
-}
 
 func InitClient(conn *grpc.ClientConn) {
 	client = article_svc.NewArticleClient(conn)

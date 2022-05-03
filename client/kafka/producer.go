@@ -3,6 +3,7 @@ package kafka
 import (
 	"time"
 	"zzlove/conf"
+	"zzlove/global"
 
 	"github.com/Shopify/sarama"
 )
@@ -27,7 +28,7 @@ func InitClient(kafkaConf conf.KafkaConf) error {
 	kfkConf.Net.WriteTimeout = DefaultWriteTimeout
 	producer, err := sarama.NewSyncProducer(kafkaConf.Addr, kfkConf)
 	if err != nil {
-		excLogger.Printf("get producer err: %v", err)
+		global.ExcLogger.Printf("get producer err: %v", err)
 		return err
 	}
 	client = &producer
@@ -41,9 +42,9 @@ func SendMessage(topic string, key []byte, data []byte) error {
 		Value: sarama.ByteEncoder(data),
 	})
 	if err != nil {
-		excLogger.Printf("kfk.sendmessage: key: %s data: %s, partition: %d, offset: %d, err: %s", key, data, partition, offset, err)
+		global.ExcLogger.Printf("kfk.sendmessage: key: %s data: %s, partition: %d, offset: %d, err: %s", key, data, partition, offset, err)
 		return err
 	}
-	excLogger.Printf("SendMessage: info, topic=%v key=%v data=%v p=%v offset=%v", topic, string(key), string(data), partition, offset)
+	global.ExcLogger.Printf("SendMessage: info, topic=%v key=%v data=%v p=%v offset=%v", topic, string(key), string(data), partition, offset)
 	return nil
 }

@@ -1,20 +1,10 @@
 package concurrent
 
 import (
-	"log"
 	"runtime/debug"
 	"sync"
+	"zzlove/global"
 )
-
-var (
-	apiLogger *log.Logger
-	excLogger *log.Logger
-)
-
-func InitLogger(apiLog, excLog *log.Logger) {
-	apiLogger = apiLog
-	excLogger = excLog
-}
 
 type WaitGroup struct {
 	wg sync.WaitGroup
@@ -29,7 +19,7 @@ func (ex *WaitGroup) Run(fn func()) {
 	go func() {
 		defer func() {
 			if err := recover(); err != nil {
-				excLogger.Println("executor", err, string(debug.Stack()))
+				global.ExcLogger.Println("executor", err, string(debug.Stack()))
 			}
 			ex.wg.Done()
 		}()
@@ -45,7 +35,7 @@ func Go(fn func()) {
 	go func() {
 		defer func() {
 			if err := recover(); err != nil {
-				excLogger.Println("Go:", err, "\n", string(debug.Stack()))
+				global.ExcLogger.Println("Go:", err, "\n", string(debug.Stack()))
 			}
 		}()
 		fn()

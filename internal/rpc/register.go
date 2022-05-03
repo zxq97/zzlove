@@ -3,6 +3,7 @@ package rpc
 import (
 	"context"
 	"time"
+	"zzlove/global"
 	"zzlove/internal/constant"
 
 	"go.etcd.io/etcd/client/v3"
@@ -81,23 +82,23 @@ func (er *EtcdRegister) keepAlive() {
 		case <-er.done:
 			_, err = er.etcdClient.Delete(context.Background(), er.svcKey)
 			if err != nil {
-				excLogger.Println(err)
+				global.ExcLogger.Println(err)
 			}
 			_, err = er.etcdClient.Revoke(context.Background(), er.leaseID)
 			if err != nil {
-				excLogger.Println(err)
+				global.ExcLogger.Println(err)
 			}
 		case res := <-er.keepAlice:
 			if res == nil {
 				err = er.add()
 				if err != nil {
-					excLogger.Println(err)
+					global.ExcLogger.Println(err)
 				}
 			}
 		case <-t.C:
 			err = er.add()
 			if err != nil {
-				excLogger.Println(err)
+				global.ExcLogger.Println(err)
 			}
 		}
 	}

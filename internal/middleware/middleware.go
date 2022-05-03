@@ -2,31 +2,21 @@ package middleware
 
 import (
 	"context"
-	"log"
 	"net/http"
 	"runtime/debug"
 	"time"
+	"zzlove/global"
 	"zzlove/internal/constant"
 	"zzlove/internal/generate"
 
 	"github.com/gin-gonic/gin"
 )
 
-var (
-	apiLogger *log.Logger
-	excLogger *log.Logger
-)
-
-func InitLogger(apiLog, excLog *log.Logger) {
-	apiLogger = apiLog
-	excLogger = excLog
-}
-
 func Recover() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		defer func() {
 			if err := recover(); err != nil {
-				excLogger.Println(err, string(debug.Stack()))
+				global.ExcLogger.Println(err, string(debug.Stack()))
 				ctx.AbortWithStatus(http.StatusInternalServerError)
 			}
 		}()
@@ -54,6 +44,6 @@ func Access(track string) gin.HandlerFunc {
 		c.Request = c.Request.WithContext(ctx)
 		now := time.Now()
 		c.Next()
-		apiLogger.Println(c.Request.URL, reqid, time.Since(now))
+		global.ApiLogger.Println(c.Request.URL, reqid, time.Since(now))
 	}
 }

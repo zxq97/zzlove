@@ -3,6 +3,7 @@ package article
 import (
 	"context"
 	"time"
+	"zzlove/global"
 	"zzlove/internal/model"
 )
 
@@ -18,7 +19,7 @@ func dbBatchGetArticles(ctx context.Context, articleIDs []int64) (map[int64]*mod
 	articles := []*model.Article{}
 	err := slaveCli.Model(&model.Article{}).Where("article_id in (?)", articleIDs).Find(&articles).Error
 	if err != nil {
-		excLogger.Printf("ctx %v dbBatchGetArticles article_ids %v err %v", ctx, articleIDs, err)
+		global.ExcLogger.Printf("ctx %v dbBatchGetArticles article_ids %v err %v", ctx, articleIDs, err)
 		return nil, err
 	}
 	articleMap := make(map[int64]*model.Article, len(articleIDs))
@@ -32,7 +33,7 @@ func dbUpdateVisibleType(ctx context.Context, articleID int64, visibleType int32
 	article := &model.Article{}
 	err := dbCli.Model(article).Where("article_id = ?", articleID).Update("visible_type", visibleType).Error
 	if err != nil {
-		excLogger.Printf("ctx %v dbUpdateVisibleType article_id %v visible_type %v err %v", ctx, articleID, visibleType, err)
+		global.ExcLogger.Printf("ctx %v dbUpdateVisibleType article_id %v visible_type %v err %v", ctx, articleID, visibleType, err)
 	}
 	return err
 }
@@ -48,7 +49,7 @@ func dbAddArticle(ctx context.Context, articleID, uid int64, content string, vis
 	}
 	err := dbCli.Create(article).Error
 	if err != nil {
-		excLogger.Printf("ctx %v dbAddArticle article_id %v uid %v content %v visible_type %v err %v", ctx, articleID, uid, content, visibleType, err)
+		global.ExcLogger.Printf("ctx %v dbAddArticle article_id %v uid %v content %v visible_type %v err %v", ctx, articleID, uid, content, visibleType, err)
 	}
 	return err
 }
@@ -57,7 +58,7 @@ func dbDeleteArticle(ctx context.Context, articleID int64) error {
 	article := &model.Article{}
 	err := dbCli.Model(article).Where("article_id = ?", articleID).Update("is_delete", 1).Error
 	if err != nil {
-		excLogger.Printf("ctx %v dbDeleteArticle article_id %v err %v", ctx, articleID, err)
+		global.ExcLogger.Printf("ctx %v dbDeleteArticle article_id %v err %v", ctx, articleID, err)
 	}
 	return err
 }

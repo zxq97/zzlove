@@ -3,7 +3,7 @@ package social
 import (
 	"net/http"
 	"zzlove/client/social"
-	"zzlove/cmd/api/env"
+	"zzlove/global"
 
 	"github.com/gin-gonic/gin"
 )
@@ -21,7 +21,7 @@ func HandleFollow(ctx *gin.Context) {
 
 	isBlack, err := social.CheckBlack(ctx.Request.Context(), uid, touid)
 	if err != nil {
-		env.ExcLogger.Printf("ctx %v CheckBlack uid %v touid %v err %v", ctx, uid, touid, err)
+		global.ExcLogger.Printf("ctx %v CheckBlack uid %v touid %v err %v", ctx, uid, touid, err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"err": err.Error(),
 		})
@@ -36,7 +36,7 @@ func HandleFollow(ctx *gin.Context) {
 
 	err = social.Follow(ctx.Request.Context(), uid, touid)
 	if err != nil {
-		env.ExcLogger.Printf("ctx %v Follow uid %v touid %v err %v", ctx, uid, touid, err)
+		global.ExcLogger.Printf("ctx %v Follow uid %v touid %v err %v", ctx, uid, touid, err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"err": err.Error(),
 		})

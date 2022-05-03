@@ -2,7 +2,6 @@ package user
 
 import (
 	"context"
-	"log"
 	"zzlove/internal/model"
 	"zzlove/pb/user"
 
@@ -10,18 +9,8 @@ import (
 )
 
 var (
-	apiLogger *log.Logger
-	excLogger *log.Logger
-	dbgLogger *log.Logger
-
 	client user_svc.UserClient
 )
-
-func InitLogger(apiLog, excLog, dbgLog *log.Logger) {
-	apiLogger = apiLog
-	excLogger = excLog
-	dbgLogger = dbgLog
-}
 
 func InitClient(conn *grpc.ClientConn) {
 	client = user_svc.NewUserClient(conn)

@@ -4,6 +4,7 @@ import (
 	"context"
 	"runtime/debug"
 	"time"
+	"zzlove/global"
 	"zzlove/internal/constant"
 
 	"google.golang.org/grpc"
@@ -21,9 +22,9 @@ func recovery(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo,
 	}
 	now := time.Now()
 	defer func() {
-		apiLogger.Println(time.Since(now))
+		global.ApiLogger.Println(time.Since(now))
 		if err := recover(); err != nil {
-			excLogger.Println(info.FullMethod, err, string(debug.Stack()))
+			global.ExcLogger.Println(info.FullMethod, err, string(debug.Stack()))
 		}
 	}()
 	return handler(ctx, req)

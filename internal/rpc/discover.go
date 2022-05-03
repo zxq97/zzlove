@@ -5,6 +5,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"zzlove/global"
 	"zzlove/internal/constant"
 
 	"go.etcd.io/etcd/api/v3/mvccpb"
@@ -90,7 +91,7 @@ func (er *EtcdDiscover) watch() {
 		case <-t.C:
 			err := er.sync()
 			if err != nil {
-				excLogger.Println("etcd sync err", err)
+				global.ExcLogger.Println("etcd sync err", err)
 			}
 		}
 	}
