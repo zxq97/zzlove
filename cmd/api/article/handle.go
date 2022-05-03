@@ -2,9 +2,9 @@ package article
 
 import (
 	"net/http"
+	"zzlove/client/article"
+	"zzlove/client/user"
 	"zzlove/global"
-	"zzlove/server/article"
-	"zzlove/server/user"
 
 	"github.com/gin-gonic/gin"
 )
