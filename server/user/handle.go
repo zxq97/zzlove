@@ -33,9 +33,9 @@ func InitService(config *conf.Conf) error {
 
 func GetUserinfo(ctx context.Context, uid int64) (*model.User, error) {
 	user, err := cacheGetUser(ctx, uid)
-	if err != nil {
+	if err != nil || user == nil {
 		user, err = dbGetUser(ctx, uid)
-		if err != nil {
+		if err != nil || user == nil {
 			return nil, err
 		}
 		concurrent.Go(func() {
@@ -47,9 +47,9 @@ func GetUserinfo(ctx context.Context, uid int64) (*model.User, error) {
 
 func GetBatchUserinfo(ctx context.Context, uids []int64) (map[int64]*model.User, error) {
 	userMap, missed, err := cacheBatchGetUser(ctx, uids)
-	if err != nil || len(missed) != 0 {
+	if err != nil || len(missed) != 0 || userMap == nil {
 		dbMap, err := dbBatchGetUser(ctx, uids)
-		if err != nil {
+		if err != nil || dbMap == nil {
 			return nil, err
 		}
 		if userMap == nil {
