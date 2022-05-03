@@ -21,7 +21,7 @@ func (SocialSvc) Unfollow(ctx context.Context, req *social_svc.FollowRequest) (*
 
 func (SocialSvc) GetFollow(ctx context.Context, req *social_svc.ListRequest) (*social_svc.ListResponse, error) {
 	uids, nextCur, err := social.GetFollow(ctx, req.Uid, req.Cursor, req.Offset)
-	if err != nil {
+	if err != nil || uids == nil {
 		return nil, err
 	}
 	return &social_svc.ListResponse{
@@ -32,7 +32,7 @@ func (SocialSvc) GetFollow(ctx context.Context, req *social_svc.ListRequest) (*s
 
 func (SocialSvc) GetFollower(ctx context.Context, req *social_svc.ListRequest) (*social_svc.ListResponse, error) {
 	uids, nextCur, err := social.GetFollower(ctx, req.Uid, req.Cursor, req.Offset)
-	if err != nil {
+	if err != nil || uids == nil {
 		return nil, err
 	}
 	return &social_svc.ListResponse{
@@ -54,7 +54,7 @@ func (SocialSvc) GetFollowCount(ctx context.Context, req *social_svc.CountReques
 
 func (SocialSvc) GetRelations(ctx context.Context, req *social_svc.RelationRequest) (*social_svc.RelationResponse, error) {
 	relationMap, err := social.GetRelations(ctx, req.Uid, req.Uids)
-	if err != nil {
+	if err != nil || relationMap == nil {
 		return nil, err
 	}
 	return &social_svc.RelationResponse{
@@ -84,7 +84,7 @@ func (SocialSvc) CheckBlack(ctx context.Context, req *social_svc.BlackRequest) (
 
 func (SocialSvc) CheckBatchBlack(ctx context.Context, req *social_svc.RelationRequest) (*social_svc.BlackBatchResponse, error) {
 	blackMap, err := social.CheckBatchBlack(ctx, req.Uid, req.Uids)
-	if err != nil {
+	if err != nil || blackMap == nil {
 		return nil, err
 	}
 	return &social_svc.BlackBatchResponse{
@@ -94,7 +94,7 @@ func (SocialSvc) CheckBatchBlack(ctx context.Context, req *social_svc.RelationRe
 
 func (SocialSvc) GetBlackList(ctx context.Context, req *social_svc.ListRequest) (*social_svc.ListResponse, error) {
 	uids, nextCur, err := social.GetBlackList(ctx, req.Uid, req.Cursor, req.Offset)
-	if err != nil {
+	if err != nil || uids == nil {
 		return nil, err
 	}
 	return &social_svc.ListResponse{
