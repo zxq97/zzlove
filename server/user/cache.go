@@ -25,8 +25,8 @@ const (
 )
 
 func cacheGetUser(ctx context.Context, uid int64) (*model.User, error) {
-	userMap, missed, err := cacheBatchGetUser(ctx, []int64{uid})
-	if err != nil || len(missed) != 0 {
+	userMap, _, err := cacheBatchGetUser(ctx, []int64{uid})
+	if err != nil || userMap[uid] == nil {
 		return nil, err
 	}
 	return userMap[uid], nil
