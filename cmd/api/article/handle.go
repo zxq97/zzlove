@@ -3,6 +3,7 @@ package article
 import (
 	"net/http"
 	"zzlove/global"
+	"zzlove/internal/cast"
 	"zzlove/server/article"
 	"zzlove/server/user"
 
@@ -10,7 +11,7 @@ import (
 )
 
 func HandleInfo(ctx *gin.Context) {
-	articleID := ctx.GetInt64("article_id")
+	articleID := cast.ParseInt(ctx.Query("article_id"), 0)
 	articleInfo, err := article.GetArticle(ctx.Request.Context(), articleID)
 	if err != nil || articleInfo == nil {
 		global.ExcLogger.Printf("ctx %v GetArticle articleid %v err %v", ctx, articleID, err)

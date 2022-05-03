@@ -4,13 +4,14 @@ import (
 	"net/http"
 	"zzlove/client/social"
 	"zzlove/global"
+	"zzlove/internal/cast"
 
 	"github.com/gin-gonic/gin"
 )
 
 func HandleFollow(ctx *gin.Context) {
-	uid := ctx.GetInt64("uid")
-	touid := ctx.GetInt64("to_uid")
+	uid := cast.ParseInt(ctx.Query("uid"), 0)
+	touid := cast.ParseInt(ctx.Query("to_uid"), 0)
 
 	if uid == touid {
 		ctx.JSON(http.StatusBadRequest, gin.H{
