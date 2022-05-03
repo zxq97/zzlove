@@ -5,12 +5,13 @@ import (
 	"zzlove/client/article"
 	"zzlove/client/user"
 	"zzlove/global"
+	"zzlove/internal/cast"
 
 	"github.com/gin-gonic/gin"
 )
 
 func HandleInfo(ctx *gin.Context) {
-	articleID := ctx.GetInt64("article_id")
+	articleID := cast.ParseInt(ctx.Query("article_id"), 0)
 	articleInfo, err := article.GetArticle(ctx.Request.Context(), articleID)
 	if err != nil || articleInfo == nil {
 		global.ExcLogger.Printf("ctx %v GetArticle articleid %v err %v", ctx, articleID, err)
