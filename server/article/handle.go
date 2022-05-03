@@ -31,11 +31,14 @@ func InitService(config *conf.Conf) error {
 
 func GetArticle(ctx context.Context, articleID int64) (*model.Article, error) {
 	article, err := cacheGetArticle(ctx, articleID)
-	if err != nil {
+	if err != nil || article == nil {
 		article, err = dbGetArticle(ctx, articleID)
 		if err != nil {
 			return nil, err
 		}
+		concurrent.Go(func() {
+			cacheSetArticle(ctx, article)
+		})
 	}
 	return article, nil
 }
