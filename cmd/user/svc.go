@@ -12,7 +12,7 @@ type UserSvc struct {
 func (UserSvc) GetUserinfo(ctx context.Context, req *user_svc.UserInfoRequest) (*user_svc.UserInfoResponse, error) {
 	userInfo, err := user.GetUserinfo(ctx, req.Uid)
 	if err != nil || userInfo == nil {
-		return nil, err
+		return &user_svc.UserInfoResponse{}, err
 	}
 	return &user_svc.UserInfoResponse{
 		Userinfo: userInfo.ToUserinfo(),
@@ -22,7 +22,7 @@ func (UserSvc) GetUserinfo(ctx context.Context, req *user_svc.UserInfoRequest) (
 func (UserSvc) GetBatchUserinfo(ctx context.Context, req *user_svc.UserInfoBatchRequest) (*user_svc.UserInfoBatchResponse, error) {
 	userMap, err := user.GetBatchUserinfo(ctx, req.Uids)
 	if err != nil || userMap == nil {
-		return nil, err
+		return &user_svc.UserInfoBatchResponse{}, err
 	}
 	infoMap := make(map[int64]*user_svc.UserInfo, len(userMap))
 	for k, v := range userMap {
