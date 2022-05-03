@@ -18,7 +18,7 @@ func dbGetArticle(ctx context.Context, articleID int64) (*model.Article, error) 
 func dbBatchGetArticles(ctx context.Context, articleIDs []int64) (map[int64]*model.Article, error) {
 	articles := []*model.Article{}
 	err := slaveCli.Model(&model.Article{}).Where("article_id in (?)", articleIDs).Find(&articles).Error
-	if err != nil {
+	if err != nil || len(articles) == 0 {
 		global.ExcLogger.Printf("ctx %v dbBatchGetArticles article_ids %v err %v", ctx, articleIDs, err)
 		return nil, err
 	}

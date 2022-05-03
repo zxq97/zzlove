@@ -33,7 +33,7 @@ func GetArticle(ctx context.Context, articleID int64) (*model.Article, error) {
 	article, err := cacheGetArticle(ctx, articleID)
 	if err != nil || article == nil {
 		article, err = dbGetArticle(ctx, articleID)
-		if err != nil {
+		if err != nil || article == nil {
 			return nil, err
 		}
 		concurrent.Go(func() {
