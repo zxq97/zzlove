@@ -53,15 +53,6 @@ type SvcConf struct {
 	Name string `yaml:"name"`
 }
 
-type HystrixConf struct {
-	Name string `yaml:"name"`
-	TTL  int    `yaml:"ttl"`
-	MCR  int    `yaml:"mcr"`
-	RVT  int    `yaml:"rvt"`
-	SW   int    `yaml:"sw"`
-	EPT  int    `yaml:"ept"`
-}
-
 type EtcdConf struct {
 	Addr []string `yaml:"addr"`
 	TTL  int      `yaml:"ttl"`
@@ -83,7 +74,6 @@ type Conf struct {
 	RedisCluster RedisClusterConf `yaml:"cluster"`
 	MC           MCConf           `yaml:"mc"`
 	Svc          SvcConf          `yaml:"svc"`
-	Hystrix      HystrixConf      `yaml:"hystrix"`
 	Etcd         EtcdConf         `yaml:"etcd"`
 	Kafka        KafkaConf        `yaml:"kafka"`
 	LogPath      LogConf          `yaml:"log_path"`

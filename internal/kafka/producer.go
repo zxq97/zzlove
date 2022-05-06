@@ -45,6 +45,6 @@ func SendMessage(topic string, key []byte, data []byte) error {
 		global.ExcLogger.Printf("kfk.sendmessage: key: %s data: %s, partition: %d, offset: %d, err: %s", key, data, partition, offset, err)
 		return err
 	}
-	global.ExcLogger.Printf("SendMessage: info, topic=%v key=%v data=%v p=%v offset=%v", topic, string(key), string(data), partition, offset)
+	global.ApiLogger.Printf("SendMessage: info, topic=%v key=%v data=%v p=%v offset=%v", topic, string(key), string(data), partition, offset)
 	return nil
 }

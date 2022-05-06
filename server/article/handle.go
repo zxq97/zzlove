@@ -6,7 +6,6 @@ import (
 	"zzlove/conf"
 	"zzlove/internal/concurrent"
 	"zzlove/internal/model"
-	"zzlove/pb/article"
 
 	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/jinzhu/gorm"
@@ -46,20 +45,16 @@ func GetArticle(ctx context.Context, articleID int64) (*model.Article, error) {
 func GetBatchArticle(ctx context.Context, articleIDs []int64) (map[int64]*model.Article, error) {
 	articleMap, missed, err := cacheBatchGetArticle(ctx, articleIDs)
 	if err != nil || len(missed) != 0 {
-		missedMap, err := dbBatchGetArticles(ctx, missed)
-		if err != nil {
+		dbMap, err := dbBatchGetArticles(ctx, missed)
+		if err != nil || len(dbMap) == 0 {
 			return nil, err
 		}
 		concurrent.Go(func() {
-			cacheBatchSetArticle(ctx, missedMap)
+			cacheBatchSetArticle(ctx, dbMap)
 		})
-		for k, v := range missedMap {
+		for k, v := range dbMap {
 			articleMap[k] = v
 		}
-	}
-	articleInfoMap := make(map[int64]*article_svc.ArticleInfo, len(articleIDs))
-	for k, v := range articleMap {
-		articleInfoMap[k] = v.ToArticleInfo()
 	}
 	return articleMap, nil
 }

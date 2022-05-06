@@ -17,7 +17,7 @@ func dbGetUser(ctx context.Context, uid int64) (*model.User, error) {
 func dbBatchGetUser(ctx context.Context, uids []int64) (map[int64]*model.User, error) {
 	users := []*model.User{}
 	err := slaveCli.Model(&model.User{}).Where("uid in (?)", uids).Find(&users).Error
-	if err != nil {
+	if err != nil || len(users) == 0 {
 		global.ExcLogger.Printf("ctx %v dbBatchGetUser uids %v err %v", ctx, uids, err)
 		return nil, err
 	}

@@ -3,6 +3,7 @@ package main
 import (
 	"net"
 	"net/http"
+	_ "net/http/pprof"
 	"zzlove/conf"
 	"zzlove/global"
 	"zzlove/internal/rpc"

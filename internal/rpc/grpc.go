@@ -6,6 +6,7 @@ import (
 	"zzlove/conf"
 	"zzlove/internal/constant"
 
+	"github.com/grpc-ecosystem/go-grpc-middleware"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/balancer/roundrobin"
 	"google.golang.org/grpc/resolver"
@@ -14,12 +15,17 @@ import (
 func NewGrpcConn(config *conf.Conf) (*grpc.ClientConn, error) {
 	er := newEtcdDiscover(config.Etcd.Addr, time.Duration(config.Etcd.TTL)*time.Second, config.Svc.Name)
 	resolver.Register(er)
+	initBreaker(&config.Hystrix)
 	conn, err := grpc.Dial(
 		er.Scheme()+":///",
 		grpc.WithInsecure(),
 		grpc.WithResolvers(er),
 		grpc.WithDefaultServiceConfig(fmt.Sprintf(`{"LoadBalancingPolicy": "%s"}`, roundrobin.Name)),
-		grpc.WithUnaryInterceptor(timeout(constant.DefaultTimeout)))
+		grpc.WithUnaryInterceptor(
+			grpc_middleware.ChainUnaryClient(
+				timeout(constant.DefaultTimeout),
+				demote(config.Hystrix.Name),
+			)))
 	return conn, err
 }
 

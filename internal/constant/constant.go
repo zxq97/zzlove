@@ -5,6 +5,7 @@ import "time"
 const (
 	ClientIPKey = "client_ip"
 	ReqIDKey    = "req_id"
+	MsgIDKey    = "msg_id"
 	TrackKey    = "track"
 
 	ApiTrackKey     = "api"

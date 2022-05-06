@@ -2,23 +2,20 @@ package main
 
 import (
 	"net/http"
+	_ "net/http/pprof"
 	"zzlove/client/article"
 	"zzlove/client/social"
 	"zzlove/client/user"
 	"zzlove/conf"
 	"zzlove/global"
-	"zzlove/internal/constant"
-	"zzlove/internal/generate"
+	"zzlove/internal/concurrent"
 	"zzlove/internal/kafka"
-	"zzlove/internal/middleware"
 	"zzlove/internal/rpc"
-
-	"github.com/gin-contrib/pprof"
-	"github.com/gin-gonic/gin"
+	"zzlove/server/async"
 )
 
 func main() {
-	config, err := conf.LoadYaml(conf.ApiConfPath)
+	config, err := conf.LoadYaml(conf.ASyncConfPath)
 	if err != nil {
 		panic(err)
 	}
@@ -31,10 +28,6 @@ func main() {
 	//	panic(err)
 	//}
 	//feedConf, err := conf.LoadYaml(conf.FeedConfPath)
-	//if err != nil {
-	//	panic(err)
-	//}
-	//searchConf, err := conf.LoadYaml(conf.SearchConfPath)
 	//if err != nil {
 	//	panic(err)
 	//}
@@ -78,32 +71,9 @@ func main() {
 	}
 	user.InitClient(userConn)
 
-	err = generate.InitSnowFlask()
-	if err != nil {
-		panic(err)
-	}
+	concurrent.Go(func() {
+		async.InitConsumer(config.Kafka.Addr, []string{kafka.UserActionTopic}, "async_svc")
+	})
 
-	err = kafka.InitClient(config.Kafka)
-	if err != nil {
-		panic(err)
-	}
-
-	route := gin.New()
-	route.Use(
-		middleware.Access(constant.TrackKey),
-		middleware.Timeout(constant.DefaultTimeout),
-		middleware.Recover(),
-	)
-
-	Router(route)
-
-	pprof.Register(route)
-	s := &http.Server{
-		Addr:           config.Svc.Bind,
-		Handler:        route,
-		ReadTimeout:    constant.DefaultIOTimeout,
-		WriteTimeout:   constant.DefaultIOTimeout,
-		MaxHeaderBytes: 1 << 20,
-	}
-	_ = s.ListenAndServe()
+	_ = http.ListenAndServe(config.Svc.Bind, nil)
 }

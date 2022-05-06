@@ -26,6 +26,9 @@ func (UserSvc) GetBatchUserinfo(ctx context.Context, req *user_svc.UserInfoBatch
 	}
 	infoMap := make(map[int64]*user_svc.UserInfo, len(userMap))
 	for k, v := range userMap {
+		if v == nil {
+			continue
+		}
 		infoMap[k] = v.ToUserinfo()
 	}
 	return &user_svc.UserInfoBatchResponse{

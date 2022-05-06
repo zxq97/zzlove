@@ -49,7 +49,7 @@ func GetBatchUserinfo(ctx context.Context, uids []int64) (map[int64]*model.User,
 	userMap, missed, err := cacheBatchGetUser(ctx, uids)
 	if err != nil || len(missed) != 0 || userMap == nil {
 		dbMap, err := dbBatchGetUser(ctx, uids)
-		if err != nil || dbMap == nil {
+		if err != nil || len(dbMap) == 0 {
 			return nil, err
 		}
 		if userMap == nil {

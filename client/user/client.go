@@ -18,7 +18,7 @@ func InitClient(conn *grpc.ClientConn) {
 
 func GetUserinfo(ctx context.Context, uid int64) (*model.User, error) {
 	res, err := client.GetUserinfo(ctx, toUserinfoRequest(uid))
-	if err != nil {
+	if err != nil || res == nil {
 		return nil, err
 	}
 	return toUser(res.Userinfo), nil
@@ -26,7 +26,7 @@ func GetUserinfo(ctx context.Context, uid int64) (*model.User, error) {
 
 func GetBatchUserinfo(ctx context.Context, uids []int64) (map[int64]*model.User, error) {
 	res, err := client.GetBatchUserinfo(ctx, toBatchUserinfoRequest(uids))
-	if err != nil {
+	if err != nil || res == nil {
 		return nil, err
 	}
 	userMap := make(map[int64]*model.User, len(uids))
@@ -38,7 +38,7 @@ func GetBatchUserinfo(ctx context.Context, uids []int64) (map[int64]*model.User,
 
 func GetHistoryBrowse(ctx context.Context, uid, cursor, offset int64) ([]int64, int64, error) {
 	res, err := client.GetHistoryBrowse(ctx, toListRequest(uid, cursor, offset))
-	if err != nil {
+	if err != nil || res == nil {
 		return nil, 0, err
 	}
 	return res.TargetIds, res.NextCursor, nil
@@ -46,7 +46,7 @@ func GetHistoryBrowse(ctx context.Context, uid, cursor, offset int64) ([]int64, 
 
 func GetCollectionList(ctx context.Context, uid, cursor, offset int64) ([]int64, int64, error) {
 	res, err := client.GetCollectionList(ctx, toListRequest(uid, cursor, offset))
-	if err != nil {
+	if err != nil || res == nil {
 		return nil, 0, err
 	}
 	return res.TargetIds, res.NextCursor, nil

@@ -13,14 +13,14 @@ import (
 )
 
 func Recover() gin.HandlerFunc {
-	return func(ctx *gin.Context) {
+	return func(c *gin.Context) {
 		defer func() {
 			if err := recover(); err != nil {
 				global.ExcLogger.Println(err, string(debug.Stack()))
-				ctx.AbortWithStatus(http.StatusInternalServerError)
+				c.AbortWithStatus(http.StatusInternalServerError)
 			}
 		}()
-		ctx.Next()
+		c.Next()
 	}
 }
 

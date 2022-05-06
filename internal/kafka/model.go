@@ -11,6 +11,7 @@ type ExtraMessage struct {
 }
 
 type KafkaMessage struct {
+	MsgID string       `json:"msg_id"`
 	Event string       `json:"event"`
 	Info  InfoMessage  `json:"info"`
 	Extra ExtraMessage `json:"extra"`
