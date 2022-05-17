@@ -8,10 +8,10 @@ import (
 
 var (
 	node *snowflake.Node
-	err  error
 )
 
 func InitSnowFlask() error {
+	var err error
 	node, err = snowflake.NewNode(time.Now().UnixNano() % 1024)
 	return err
 }

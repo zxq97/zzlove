@@ -33,63 +33,63 @@ func newEtcdDiscover(etcdAddr []string, dialTimeout time.Duration, svcPrefix str
 	}
 }
 
-func (er *EtcdDiscover) Scheme() string {
+func (ed *EtcdDiscover) Scheme() string {
 	return constant.EtcdScheme
 }
 
-func (er *EtcdDiscover) Build(target resolver.Target, cc resolver.ClientConn, opts resolver.BuildOptions) (resolver.Resolver, error) {
-	er.cc = cc
+func (ed *EtcdDiscover) Build(target resolver.Target, cc resolver.ClientConn, opts resolver.BuildOptions) (resolver.Resolver, error) {
+	ed.cc = cc
 
-	if _, err := er.start(); err != nil {
+	if _, err := ed.start(); err != nil {
 		return nil, err
 	}
-	return er, nil
+	return ed, nil
 }
 
-func (er *EtcdDiscover) ResolveNow(o resolver.ResolveNowOptions) {
+func (ed *EtcdDiscover) ResolveNow(o resolver.ResolveNowOptions) {
 }
 
-func (er *EtcdDiscover) Close() {
-	er.done <- struct{}{}
+func (ed *EtcdDiscover) Close() {
+	ed.done <- struct{}{}
 }
 
-func (er *EtcdDiscover) start() (chan<- struct{}, error) {
+func (ed *EtcdDiscover) start() (chan<- struct{}, error) {
 	var err error
-	er.etcdClient, err = clientv3.New(clientv3.Config{
-		Endpoints:   er.addr,
-		DialTimeout: er.timeout,
+	ed.etcdClient, err = clientv3.New(clientv3.Config{
+		Endpoints:   ed.addr,
+		DialTimeout: ed.timeout,
 	})
 	if err != nil {
 		return nil, err
 	}
-	resolver.Register(er)
+	resolver.Register(ed)
 
-	er.done = make(chan struct{})
+	ed.done = make(chan struct{})
 
-	err = er.sync()
+	err = ed.sync()
 	if err != nil {
 		return nil, err
 	}
 
-	go er.watch()
+	go ed.watch()
 
-	return er.done, nil
+	return ed.done, nil
 }
 
-func (er *EtcdDiscover) watch() {
+func (ed *EtcdDiscover) watch() {
 	t := time.NewTicker(constant.DefaultTicker)
-	er.watchChan = er.etcdClient.Watch(context.Background(), er.keyPrefix, clientv3.WithPrefix())
+	ed.watchChan = ed.etcdClient.Watch(context.Background(), ed.keyPrefix, clientv3.WithPrefix())
 
 	for {
 		select {
-		case <-er.done:
+		case <-ed.done:
 			return
-		case res, ok := <-er.watchChan:
+		case res, ok := <-ed.watchChan:
 			if ok {
-				er.update(res.Events)
+				ed.update(res.Events)
 			}
 		case <-t.C:
-			err := er.sync()
+			err := ed.sync()
 			if err != nil {
 				global.ExcLogger.Println("etcd sync err", err)
 			}
@@ -97,49 +97,48 @@ func (er *EtcdDiscover) watch() {
 	}
 }
 
-func (er *EtcdDiscover) updateState() {
-	er.lock.Lock()
-	defer er.lock.Unlock()
+func (ed *EtcdDiscover) updateState() {
+	ed.lock.Lock()
+	defer ed.lock.Unlock()
 	svcAddr := make([]resolver.Address, 0)
-	er.svcAddrMap.Range(func(k, v interface{}) bool {
+	ed.svcAddrMap.Range(func(k, v interface{}) bool {
 		addr, ok := k.(string)
 		if ok {
 			svcAddr = append(svcAddr, resolver.Address{Addr: addr})
 		}
 		return true
 	})
-	er.cc.UpdateState(resolver.State{Addresses: svcAddr})
+	ed.cc.UpdateState(resolver.State{Addresses: svcAddr})
 }
 
-func (er *EtcdDiscover) update(events []*clientv3.Event) {
+func (ed *EtcdDiscover) update(events []*clientv3.Event) {
 	for _, v := range events {
 		switch v.Type {
 		case mvccpb.PUT:
-			er.svcAddrMap.Store(string(v.Kv.Value), struct{}{})
+			ed.svcAddrMap.Store(string(v.Kv.Value), struct{}{})
 		case mvccpb.DELETE:
 			ks := strings.Split(string(v.Kv.Key), "_")
 			if len(ks) > 1 {
-				er.svcAddrMap.Delete(ks[1])
+				ed.svcAddrMap.Delete(ks[1])
 			}
 		}
 	}
-	er.updateState()
-
+	ed.updateState()
 }
 
-func (er *EtcdDiscover) sync() error {
+func (ed *EtcdDiscover) sync() error {
 	ctx, cancel := context.WithTimeout(context.Background(), constant.DefaultTimeout)
 	defer cancel()
 
-	res, err := er.etcdClient.Get(ctx, er.keyPrefix, clientv3.WithPrefix())
+	res, err := ed.etcdClient.Get(ctx, ed.keyPrefix, clientv3.WithPrefix())
 	if err != nil {
 		return err
 	}
 
 	for _, v := range res.Kvs {
-		er.svcAddrMap.Store(string(v.Value), struct{}{})
+		ed.svcAddrMap.Store(string(v.Value), struct{}{})
 	}
 
-	er.updateState()
+	ed.updateState()
 	return nil
 }

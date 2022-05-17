@@ -15,7 +15,7 @@ import (
 func NewGrpcConn(config *conf.Conf) (*grpc.ClientConn, error) {
 	er := newEtcdDiscover(config.Etcd.Addr, time.Duration(config.Etcd.TTL)*time.Second, config.Svc.Name)
 	resolver.Register(er)
-	initBreaker(&config.Hystrix)
+	initBreaker(config.Svc.Name)
 	conn, err := grpc.Dial(
 		er.Scheme()+":///",
 		grpc.WithInsecure(),
@@ -24,7 +24,7 @@ func NewGrpcConn(config *conf.Conf) (*grpc.ClientConn, error) {
 		grpc.WithUnaryInterceptor(
 			grpc_middleware.ChainUnaryClient(
 				timeout(constant.DefaultTimeout),
-				demote(config.Hystrix.Name),
+				demote(config.Svc.Name),
 			)))
 	return conn, err
 }
