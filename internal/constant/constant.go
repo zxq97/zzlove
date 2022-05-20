@@ -25,7 +25,7 @@ const (
 	DefaultIOTimeout = 10 * time.Second
 	DefaultTicker    = time.Minute
 
-	EtcdLeaseTTL = 1000 * 60 * 2
+	EtcdLeaseTTL = 60
 
 	EtcdScheme = "etcd"
 )

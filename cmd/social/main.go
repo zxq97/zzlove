@@ -4,6 +4,9 @@ import (
 	"net"
 	"net/http"
 	_ "net/http/pprof"
+	"os"
+	"os/signal"
+	"syscall"
 	"zzlove/conf"
 	"zzlove/global"
 	"zzlove/internal/rpc"
@@ -36,20 +39,37 @@ func main() {
 	}
 
 	svc, er := rpc.NewGrpcServer(config)
-	defer er.Stop()
 	social_svc.RegisterSocialServer(svc, SocialSvc{})
 	_, err = er.Register()
 	if err != nil {
 		panic(err)
 	}
 
+	errch := make(chan error)
+	sign := make(chan os.Signal)
+	signal.Notify(sign, syscall.SIGINT, syscall.SIGTERM)
+
 	go func() {
-		_ = http.ListenAndServe(config.Svc.Bind, nil)
+		err = http.ListenAndServe(config.Svc.Bind, nil)
+		errch <- err
 	}()
 
 	lis, err := net.Listen("tcp", config.Svc.Addr)
 	if err != nil {
 		panic(err)
 	}
-	_ = svc.Serve(lis)
+
+	go func() {
+		err = svc.Serve(lis)
+		errch <- err
+	}()
+
+	select {
+	case <-sign:
+		global.ApiLogger.Println("receive signal done")
+		er.Stop()
+	case <-errch:
+		global.ExcLogger.Println("receive err done", err)
+		er.Stop()
+	}
 }
