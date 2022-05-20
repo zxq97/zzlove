@@ -68,6 +68,7 @@ func main() {
 	case <-sign:
 		global.ApiLogger.Println("receive signal done")
 		er.Stop()
+		global.DbgLogger.Printf("er stop done")
 	case <-errch:
 		global.ExcLogger.Println("receive err done", err)
 		er.Stop()

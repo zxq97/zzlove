@@ -53,6 +53,7 @@ func (er *EtcdRegister) Register() (chan<- struct{}, error) {
 
 func (er *EtcdRegister) Stop() {
 	er.done <- struct{}{}
+	global.DbgLogger.Printf("er stop done")
 }
 
 func (er *EtcdRegister) add() error {
