@@ -12,7 +12,7 @@ type ArcileSvc struct {
 func (ArcileSvc) GetArticle(ctx context.Context, req *article_svc.ArticleRequest) (*article_svc.ArticleResponse, error) {
 	articleInfo, err := article.GetArticle(ctx, req.ArticleId)
 	if err != nil || articleInfo == nil {
-		return nil, err
+		return &article_svc.ArticleResponse{}, err
 	}
 	return &article_svc.ArticleResponse{
 		ArticleInfo: articleInfo.ToArticleInfo(),
@@ -22,7 +22,7 @@ func (ArcileSvc) GetArticle(ctx context.Context, req *article_svc.ArticleRequest
 func (ArcileSvc) GetBatchArticle(ctx context.Context, req *article_svc.ArticleBatchRequest) (*article_svc.ArticleBatchResponse, error) {
 	articleMap, err := article.GetBatchArticle(ctx, req.ArticleIds)
 	if err != nil || articleMap == nil {
-		return nil, err
+		return &article_svc.ArticleBatchResponse{}, err
 	}
 	infoMap := make(map[int64]*article_svc.ArticleInfo, len(articleMap))
 	for k, v := range articleMap {
@@ -38,15 +38,15 @@ func (ArcileSvc) GetBatchArticle(ctx context.Context, req *article_svc.ArticleBa
 
 func (ArcileSvc) ChangeVisibleType(ctx context.Context, req *article_svc.VisibleTypeRequest) (*article_svc.EmptyResponse, error) {
 	err := article.ChangeVisibleType(ctx, req.ArticleId, req.VisibleType)
-	return nil, err
+	return &article_svc.EmptyResponse{}, err
 }
 
 func (ArcileSvc) PublishArticle(ctx context.Context, req *article_svc.PublishArticleRequest) (*article_svc.EmptyResponse, error) {
 	err := article.PublishArticle(ctx, req.ArticleInfo.ArticleId, req.ArticleInfo.Uid, req.ArticleInfo.Content, req.ArticleInfo.VisibleType)
-	return nil, err
+	return &article_svc.EmptyResponse{}, err
 }
 
 func (ArcileSvc) DeleteArticle(ctx context.Context, req *article_svc.ArticleRequest) (*article_svc.EmptyResponse, error) {
 	err := article.DeleteArticle(ctx, req.ArticleId)
-	return nil, err
+	return &article_svc.EmptyResponse{}, err
 }

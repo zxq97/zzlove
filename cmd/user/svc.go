@@ -16,7 +16,7 @@ func (UserSvc) GetUserinfo(ctx context.Context, req *user_svc.UserInfoRequest) (
 	}
 	return &user_svc.UserInfoResponse{
 		Userinfo: userInfo.ToUserinfo(),
-	}, nil
+	}, err
 }
 
 func (UserSvc) GetBatchUserinfo(ctx context.Context, req *user_svc.UserInfoBatchRequest) (*user_svc.UserInfoBatchResponse, error) {
@@ -38,42 +38,36 @@ func (UserSvc) GetBatchUserinfo(ctx context.Context, req *user_svc.UserInfoBatch
 
 func (UserSvc) GetHistoryBrowse(ctx context.Context, req *user_svc.ListRequest) (*user_svc.ListResponse, error) {
 	uids, nextCur, err := user.GetHistoryBrowse(ctx, req.Uid, req.Cursor, req.Offset)
-	if err != nil || uids == nil {
-		return nil, err
-	}
 	return &user_svc.ListResponse{
 		TargetIds:  uids,
 		NextCursor: nextCur,
-	}, nil
+	}, err
 }
 
 func (UserSvc) GetCollectionList(ctx context.Context, req *user_svc.ListRequest) (*user_svc.ListResponse, error) {
 	uids, nextCur, err := user.GetCollectionList(ctx, req.Uid, req.Cursor, req.Offset)
-	if err != nil || uids == nil {
-		return nil, err
-	}
 	return &user_svc.ListResponse{
 		TargetIds:  uids,
 		NextCursor: nextCur,
-	}, nil
+	}, err
 }
 
 func (UserSvc) Collection(ctx context.Context, req *user_svc.CollectionRequest) (*user_svc.EmptyResponse, error) {
 	err := user.Collection(ctx, req.CollectionInfo.Uid, req.CollectionInfo.ToUid)
-	return nil, err
+	return &user_svc.EmptyResponse{}, err
 }
 
 func (UserSvc) CancelCollection(ctx context.Context, req *user_svc.CollectionRequest) (*user_svc.EmptyResponse, error) {
 	err := user.CancelCollection(ctx, req.CollectionInfo.Uid, req.CollectionInfo.ToUid)
-	return nil, err
+	return &user_svc.EmptyResponse{}, err
 }
 
 func (UserSvc) AddBrowse(ctx context.Context, req *user_svc.AddBrowseRequest) (*user_svc.EmptyResponse, error) {
 	err := user.AddBrowse(ctx, req.BrowseInfo.Uid, req.BrowseInfo.ToUid)
-	return nil, err
+	return &user_svc.EmptyResponse{}, err
 }
 
 func (UserSvc) CreateUser(ctx context.Context, req *user_svc.CreateUserRequest) (*user_svc.EmptyResponse, error) {
 	err := user.CreateUser(ctx, req.Userinfo.Uid, req.Userinfo.Gender, req.Userinfo.Nickname, req.Userinfo.Introduction)
-	return nil, err
+	return &user_svc.EmptyResponse{}, err
 }
