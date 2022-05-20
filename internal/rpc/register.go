@@ -80,6 +80,7 @@ func (er *EtcdRegister) keepAlive() {
 	for {
 		select {
 		case <-er.done:
+			global.DbgLogger.Printf("svc %v done %v", er.svcKey, time.Now())
 			_, err = er.etcdClient.Delete(context.Background(), er.svcKey)
 			if err != nil {
 				global.ExcLogger.Println(err)
@@ -88,6 +89,7 @@ func (er *EtcdRegister) keepAlive() {
 			if err != nil {
 				global.ExcLogger.Println(err)
 			}
+			global.DbgLogger.Printf("svc %v done %v", er.svcKey, time.Now())
 		case res := <-er.keepAlice:
 			if res == nil {
 				err = er.add()
