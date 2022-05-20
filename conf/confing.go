@@ -3,6 +3,7 @@ package conf
 import (
 	"io/ioutil"
 	"log"
+	"net"
 	"os"
 	"time"
 
@@ -79,13 +80,34 @@ type Conf struct {
 	LogPath      LogConf          `yaml:"log_path"`
 }
 
+func getIP() string {
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		return ""
+	}
+	for _, value := range addrs {
+		if ipnet, ok := value.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+			if ipnet.IP.To4() != nil {
+				return ipnet.IP.String()
+			}
+		}
+	}
+	return ""
+}
+
 func LoadYaml(path string) (*Conf, error) {
-	conf := new(Conf)
+	conf := &Conf{}
 	y, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
 	err = yaml.Unmarshal(y, conf)
+	if err != nil {
+		return nil, err
+	}
+	ip := getIP()
+	conf.Svc.Addr = ip + conf.Svc.Addr
+	conf.Svc.Bind = ip + conf.Svc.Bind
 	return conf, err
 }
 
